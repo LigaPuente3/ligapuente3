@@ -21,7 +21,7 @@ export const en: Dictionary = {
     tagline: "Sign up with your Discord account, play the group stage and fight for the title in the knockout rounds.",
     statusTitle: "Under construction",
     statusBody:
-      "We are building the site. Very soon you will be able to sign in with Discord and register for the first tournament.",
+      "You can now sign in with your Discord account. Very soon you will be able to register for the first tournament.",
     featuresTitle: "How it works",
     features: [
       {
@@ -37,6 +37,77 @@ export const en: Dictionary = {
         body: "The best players of the group stage move on to the final bracket until a champion is crowned.",
       },
     ],
+  },
+  auth: {
+    signIn: "Sign in",
+    signOut: "Sign out",
+    signInWithDiscord: "Sign in with Discord",
+    admin: "Admin",
+    userMenu: "Your account",
+    loginTitle: "Sign in",
+    loginIntro: "Sign in with your Discord account to take part in the {community} league.",
+    loginPrivacy:
+      "We only ask Discord for your ID, name and avatar (\"identify\" scope). Never your email or password.",
+    loginError: "Signing in with Discord failed. Please try again.",
+    alreadySignedIn: "You are signed in as {name}.",
+  },
+  forbidden: {
+    title: "No permission",
+    body: "Your account is not allowed to see this page.",
+    back: "Back to home",
+  },
+  admin: {
+    title: "Admin",
+    intro: "{site} admin panel. Only accounts with the admin role can see it.",
+    usersTitle: "Users",
+    stats: { total: "Total", PLAYER: "Players", ORGANIZER: "Organizers", ADMIN: "Admins" },
+    statsError: "The data could not be loaded. Please try again later.",
+    comingSoonTitle: "Coming soon",
+    comingSoonBody: "Tournaments, registrations, group stage and knockout rounds.",
+    docsLink: "Admin documentation",
+    docs: {
+      title: "Admin documentation",
+      intro: "How {site} is managed. Kept up to date with every change.",
+      sections: [
+        {
+          title: "Roles",
+          paragraphs: [
+            "There are three roles: player (PLAYER), organizer (ORGANIZER) and admin (ADMIN). Every account is a player when it first signs in.",
+            "Admins are the accounts whose Discord ID is listed in the ADMIN_DISCORD_IDS environment variable in Vercel (comma separated), plus those with the ADMIN role in the database.",
+            "For now, an account's stored role is changed in the Supabase SQL Editor: UPDATE users SET role = 'ORGANIZER' WHERE discord_id = '…'; Role changes can take up to 5 minutes to apply.",
+          ],
+        },
+        {
+          title: "How to get a Discord ID",
+          paragraphs: [
+            "In Discord: User Settings → Advanced → turn on Developer Mode. Then right-click (or long-press) the user → Copy User ID.",
+          ],
+        },
+        {
+          title: "Service status",
+          paragraphs: [
+            "The /api/health address shows the region the site runs in (it must be fra1, Frankfurt), the time, the last applied migration and the database response time (it should be tens of milliseconds).",
+            "A daily Vercel cron queries the database so Supabase does not pause the project for inactivity.",
+          ],
+        },
+        {
+          title: "Database and migrations",
+          paragraphs: [
+            "Database structure changes are applied by hand in the Supabase SQL Editor, first in development and then in production, following docs/MIGRACIONES.md in the repository.",
+          ],
+        },
+        {
+          title: "Personal data and account deletion",
+          paragraphs: [
+            "If someone asks to delete their account, delete their row in the users table (their sessions and linked Discord account are deleted automatically): DELETE FROM users WHERE discord_id = '…';",
+          ],
+        },
+        {
+          title: "Handover",
+          paragraphs: ["Services, environment variables and keys to rotate are listed in docs/TRANSFERENCIA.md in the repository."],
+        },
+      ],
+    },
   },
   footer: {
     unofficial:
@@ -64,7 +135,8 @@ export const en: Dictionary = {
       {
         title: "What data we store",
         paragraphs: [
-          "When you sign in with Discord we will only store your Discord ID, your display name and your avatar URL. We do not ask for your email address and Discord never shares your password with us.",
+          "When you sign in with Discord we only store your Discord ID, your display name and your avatar URL. We do not ask for your email address (internally a placeholder derived from your ID is stored) and Discord never shares your password with us. We do not store Discord access tokens.",
+          "While your session is open we store, for security, the IP address and browser you signed in from; they are deleted when the session ends or expires.",
           "We also store the data you generate by taking part in the league: registrations, pairings and results.",
         ],
       },
@@ -101,7 +173,7 @@ export const en: Dictionary = {
       {
         title: "Your rights and how to delete your account",
         paragraphs: [
-          "You can request access, rectification, erasure (deleting your account), restriction, objection and portability of your data by writing to {contact}. Later on you will be able to delete your account yourself from your profile.",
+          "You can request access, rectification, erasure (deleting your account), restriction, objection and portability of your data by writing to {contact}. Later on you will be able to delete your account yourself from your profile. You can also revoke {site}'s access in Discord: User Settings → Authorized Apps.",
           "If you believe we have not handled your request properly, you can file a complaint with the Spanish Data Protection Agency (aepd.es).",
         ],
       },
@@ -161,7 +233,8 @@ export const en: Dictionary = {
       {
         title: "How to sign in",
         paragraphs: [
-          "Very soon you will be able to sign in with your Discord account. We will only use your ID, name and avatar; never your email or password.",
+          "Press \"Sign in\" in the header and then \"Sign in with Discord\". Discord will ask you to authorize {site}: we only share your ID, name and avatar; never your email or password.",
+          "To leave, press \"Sign out\" in the header. Your name and avatar are refreshed every time you sign in.",
         ],
       },
       {

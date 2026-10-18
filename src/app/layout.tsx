@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getDictionary, siteVars } from "@/i18n/server";
 import { format } from "@/i18n/locale";
+import { getCurrentUser } from "@/lib/session";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -22,7 +23,7 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { locale, dict } = await getDictionary();
+  const [{ locale, dict }, user] = await Promise.all([getDictionary(), getCurrentUser()]);
 
   return (
     <html lang={locale}>
@@ -33,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         >
           {dict.nav.skipToContent}
         </a>
-        <SiteHeader locale={locale} dict={dict} />
+        <SiteHeader locale={locale} dict={dict} user={user} />
         <main id="contenido" className="w-full flex-1">
           {children}
         </main>

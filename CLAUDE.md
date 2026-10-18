@@ -40,8 +40,11 @@ Inventario y traspaso en [`docs/TRANSFERENCIA.md`](docs/TRANSFERENCIA.md). Resum
 3. **Versión** `1.0.0-beta.N` en `package.json`: sube con cada PR visible, con su entrada en `src/content/changelog.ts` (un test exige que coincidan).
 4. **Ayuda (`/help`, ES y EN) y documentación de administración (`/admin/docs`) al día en la misma PR.**
 
-## Base de datos
-- **Nunca ejecutar migraciones ni DDL contra producción.** Las migraciones viven en `prisma/migrations` como SQL y las aplica la persona responsable en el *SQL Editor* de Supabase, con guía.
+## Base de datos e inicio de sesión
+- Prisma 7 con `@prisma/adapter-pg` (`src/lib/db.ts`): `DATABASE_URL` = pooler en modo transacción (6543), pool pequeño (`max: 3`) y `attachDatabasePool` de Vercel. `DIRECT_URL` = pooler en modo sesión (5432), solo para la CLI (`prisma.config.ts`). El cliente se genera en `src/generated/` (`postinstall`), sin necesitar conexión.
+- Better Auth (`src/lib/auth.ts`) con sesiones en base de datos y **solo Discord, ámbito `identify`** (correo ficticio `<id>@discord.invalid`; los tokens de Discord no se guardan). `getCurrentUser()` va envuelto en `cache()` de React. Roles: `src/lib/roles.ts` (ADMIN por `ADMIN_DISCORD_IDS` o columna `role`).
+- Las previews de Vercel no permiten iniciar sesión todavía (Discord exige redirecciones exactas); pendiente: plugin `oAuthProxy` de Better Auth con un secreto propio.
+- **Nunca ejecutar migraciones ni DDL contra producción.** Las migraciones viven en `prisma/migrations` como SQL y las aplica la persona responsable en el *SQL Editor* de Supabase, con guía. Procedimiento completo en [`docs/MIGRACIONES.md`](docs/MIGRACIONES.md) (cada migración se registra en la tabla `app_migrations`).
 - Cada tabla nueva: `ALTER TABLE … ENABLE ROW LEVEL SECURITY;` y **ninguna política** (la app se conecta como `postgres`).
 - `npm run dev` usa el `.env.local` del proyecto `ligapuente3-dev`. El desarrollo nunca toca producción y nunca se escribe en producción para probar.
 - Misma región para todo (Frankfurt). Lo que no depende entre sí va en `Promise.all`; paginar, cachear y no leer de más.

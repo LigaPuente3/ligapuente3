@@ -33,3 +33,6 @@ npm-debug.log*
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Cliente de Prisma generado (npm install lo regenera)
+src/generated/

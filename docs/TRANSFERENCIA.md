@@ -49,7 +49,21 @@ La lista completa y comentada está en [`.env.example`](../.env.example). Al tra
 | `CONTACT_EMAIL` | No | Correo de los nuevos responsables |
 | `LEGAL_CONTROLLER_NAME` | No | Nombre del nuevo responsable del tratamiento (RGPD) |
 | `REPO_URL` | No | Si se mueve el repositorio |
+| `DATABASE_URL`, `DIRECT_URL` | **Sí** | Nuevas cadenas tras cambiar la contraseña de la base de datos |
+| `BETTER_AUTH_SECRET` | **Sí** | Generar uno nuevo (cierra todas las sesiones abiertas) |
+| `BETTER_AUTH_URL` | No | Si cambia el dominio |
+| `DISCORD_CLIENT_ID` | No | Solo si se crea otra aplicación de Discord |
+| `DISCORD_CLIENT_SECRET` | **Sí** | Regenerarlo en Discord |
+| `ADMIN_DISCORD_IDS` | No | IDs de Discord de los nuevos administradores |
+| `CRON_SECRET` | **Sí** | Generar uno nuevo |
 
 ## Claves a rotar tras el traspaso
 
-Todavía no hay claves secretas en uso. Se completará en la PR 2 con: contraseñas de las bases de datos de Supabase (`DATABASE_URL`, `DIRECT_URL`), `BETTER_AUTH_SECRET`, `DISCORD_CLIENT_SECRET` y `CRON_SECRET`.
+Hacerlo **después** de que la nueva persona tenga acceso y **antes** de que salgan los antiguos responsables. Tras cada cambio, actualizar la variable en Vercel (*Settings → Environment Variables*) y volver a desplegar (*Deployments → ⋯ → Redeploy*).
+
+1. **Contraseña de cada base de datos** (dev y prod): Supabase → proyecto → *Project Settings → Database → Reset database password*. Actualizar `DATABASE_URL` y `DIRECT_URL`.
+2. **`DISCORD_CLIENT_SECRET`**: Developer Portal → aplicación → *OAuth2 → Reset Secret*.
+3. **`BETTER_AUTH_SECRET`**: generar uno nuevo y largo. Todas las sesiones se cierran (hay que volver a entrar).
+4. **`CRON_SECRET`**: generar uno nuevo.
+5. Revisar `ADMIN_DISCORD_IDS` y los roles guardados (`select discord_id, name, role from users where role <> 'PLAYER';`).
+6. Retirar a los antiguos responsables de la organización de GitHub, del equipo de Vercel, de la organización de Supabase y del Team de Discord.

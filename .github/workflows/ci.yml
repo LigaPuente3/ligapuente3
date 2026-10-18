@@ -27,3 +27,9 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+        env:
+          # Valores ficticios solo para compilar (sin base de datos ni Discord).
+          BETTER_AUTH_SECRET: ci-build-only-not-a-real-secret-0000000000
+          BETTER_AUTH_URL: http://localhost:3100
+          DISCORD_CLIENT_ID: ci-build-only
+          DISCORD_CLIENT_SECRET: ci-build-only
