@@ -1,0 +1,35 @@
+# Dependencias
+node_modules/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Build
+build/
+dist/
+*.tsbuildinfo
+
+# Variables de entorno (solo se sube .env.example)
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Configuración local de Claude Code (lleva rutas de este equipo)
+.claude/settings.local.json
+
+# Tests
+coverage/
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.idea/
+.vscode/*
+!.vscode/extensions.json
