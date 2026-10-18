@@ -1,0 +1,95 @@
+// Esquema de la base de datos (PostgreSQL en Supabase).
+// Las migraciones viven en prisma/migrations como SQL y se aplican a mano en el
+// SQL Editor de Supabase (primero dev, luego prod). Ver docs/MIGRACIONES.md.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  PLAYER
+  ORGANIZER
+  ADMIN
+}
+
+/// Usuario. Solo entra con Discord: guardamos su ID, nombre visible y avatar.
+model User {
+  id            String    @id
+  name          String
+  /// Better Auth exige un correo; como no pedimos el ámbito `email`, se guarda
+  /// uno ficticio derivado del ID de Discord (`<id>@discord.invalid`).
+  email         String    @unique
+  emailVerified Boolean   @default(false) @map("email_verified")
+  image         String?
+  discordId     String    @unique @map("discord_id")
+  role          Role      @default(PLAYER)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+/// Cuenta de Discord vinculada. No guardamos los tokens de Discord (se vacían al crearla).
+model Account {
+  id                    String    @id
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+/// Valores temporales del inicio de sesión (estado de OAuth).
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+/// Migraciones aplicadas a mano en el SQL Editor (cada archivo de migración inserta su nombre).
+model AppMigration {
+  name      String   @id
+  appliedAt DateTime @default(now()) @map("applied_at")
+
+  @@map("app_migrations")
+}

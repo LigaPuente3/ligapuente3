@@ -26,7 +26,7 @@ export const es = {
     tagline: "Inscríbete con tu cuenta de Discord, juega la liguilla y pelea por el título en las eliminatorias.",
     statusTitle: "En construcción",
     statusBody:
-      "Estamos preparando la web. Muy pronto podrás entrar con Discord e inscribirte en el primer torneo.",
+      "Ya puedes entrar con tu cuenta de Discord. Muy pronto podrás inscribirte en el primer torneo.",
     featuresTitle: "Cómo funciona",
     features: [
       {
@@ -42,6 +42,79 @@ export const es = {
         body: "Los mejores de la liguilla pasan al cuadro final hasta coronar al campeón.",
       },
     ],
+  },
+  auth: {
+    signIn: "Entrar",
+    signOut: "Salir",
+    signInWithDiscord: "Entrar con Discord",
+    admin: "Administración",
+    userMenu: "Tu cuenta",
+    loginTitle: "Entrar",
+    loginIntro: "Entra con tu cuenta de Discord para participar en la liga de {community}.",
+    loginPrivacy:
+      "Solo pedimos a Discord tu identificador, tu nombre y tu avatar (ámbito «identify»). Nunca tu correo ni tu contraseña.",
+    loginError: "No se ha podido iniciar sesión con Discord. Vuelve a intentarlo.",
+    alreadySignedIn: "Has entrado como {name}.",
+  },
+  forbidden: {
+    title: "Sin permiso",
+    body: "Tu cuenta no tiene permiso para ver esta página.",
+    back: "Volver al inicio",
+  },
+  admin: {
+    title: "Administración",
+    intro: "Panel de administración de {site}. Solo lo ven las cuentas con rol de administrador.",
+    usersTitle: "Usuarios",
+    stats: { total: "Total", PLAYER: "Jugadores", ORGANIZER: "Organizadores", ADMIN: "Administradores" },
+    statsError: "No se han podido cargar los datos. Inténtalo más tarde.",
+    comingSoonTitle: "Próximamente",
+    comingSoonBody: "Torneos, inscripciones, liguilla y eliminatorias.",
+    docsLink: "Documentación de administración",
+    docs: {
+      title: "Documentación de administración",
+      intro: "Cómo se gestiona {site}. Se mantiene al día con cada cambio.",
+      sections: [
+        {
+          title: "Roles",
+          paragraphs: [
+            "Hay tres roles: jugador (PLAYER), organizador (ORGANIZER) y administrador (ADMIN). Al entrar por primera vez, toda cuenta es jugador.",
+            "Son administradores las cuentas cuyo ID de Discord está en la variable de entorno ADMIN_DISCORD_IDS de Vercel (separados por comas), además de las que tengan el rol ADMIN en la base de datos.",
+            "Para cambiar el rol guardado de una cuenta, de momento se hace en el SQL Editor de Supabase: UPDATE users SET role = 'ORGANIZER' WHERE discord_id = '…'; Los cambios de rol tardan hasta 5 minutos en aplicarse.",
+          ],
+        },
+        {
+          title: "Cómo obtener un ID de Discord",
+          paragraphs: [
+            "En Discord: Ajustes de usuario → Avanzado → activa el Modo desarrollador. Después, clic derecho (o mantener pulsado) sobre el usuario → Copiar ID de usuario.",
+          ],
+        },
+        {
+          title: "Estado del servicio",
+          paragraphs: [
+            "La dirección /api/health indica la región en la que corre la web (debe ser fra1, Frankfurt), la hora, la última migración aplicada y el tiempo de respuesta de la base de datos (debe ser de decenas de milisegundos).",
+            "Un cron diario de Vercel consulta la base de datos para que Supabase no pause el proyecto por inactividad.",
+          ],
+        },
+        {
+          title: "Base de datos y migraciones",
+          paragraphs: [
+            "Los cambios de estructura de la base de datos se aplican a mano en el SQL Editor de Supabase, primero en desarrollo y después en producción, siguiendo docs/MIGRACIONES.md del repositorio.",
+          ],
+        },
+        {
+          title: "Datos personales y borrado de cuentas",
+          paragraphs: [
+            "Si alguien pide borrar su cuenta, se borra su fila de la tabla users (sus sesiones y su cuenta de Discord vinculada se borran solas): DELETE FROM users WHERE discord_id = '…';",
+          ],
+        },
+        {
+          title: "Traspaso",
+          paragraphs: [
+            "Los servicios, las variables de entorno y las claves a rotar están en docs/TRANSFERENCIA.md del repositorio.",
+          ],
+        },
+      ],
+    },
   },
   footer: {
     unofficial:
@@ -71,7 +144,8 @@ export const es = {
       {
         title: "Qué datos guardamos",
         paragraphs: [
-          "Cuando entres con Discord guardaremos únicamente tu identificador de Discord, tu nombre visible y la dirección de tu avatar. No pedimos tu correo electrónico y Discord nunca nos facilita tu contraseña.",
+          "Cuando entras con Discord guardamos únicamente tu identificador de Discord, tu nombre visible y la dirección de tu avatar. No pedimos tu correo electrónico (internamente se guarda uno ficticio derivado de tu identificador) y Discord nunca nos facilita tu contraseña. No guardamos los tokens de acceso de Discord.",
+          "Mientras tu sesión está abierta guardamos, por seguridad, la dirección IP y el navegador desde el que entraste; se borran al cerrar o caducar la sesión.",
           "También guardamos los datos que generes al participar en la liga: inscripciones, emparejamientos y resultados.",
         ],
       },
@@ -108,7 +182,7 @@ export const es = {
       {
         title: "Tus derechos y cómo borrar tu cuenta",
         paragraphs: [
-          "Puedes pedir el acceso, la rectificación, la supresión (borrado de tu cuenta), la limitación, la oposición y la portabilidad de tus datos escribiendo a {contact}. Más adelante podrás borrar tu cuenta tú mismo desde tu perfil.",
+          "Puedes pedir el acceso, la rectificación, la supresión (borrado de tu cuenta), la limitación, la oposición y la portabilidad de tus datos escribiendo a {contact}. Más adelante podrás borrar tu cuenta tú mismo desde tu perfil. También puedes retirar el acceso de {site} en Discord: Ajustes de usuario → Aplicaciones autorizadas.",
           "Si consideras que no hemos atendido bien tu solicitud, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).",
         ],
       },
@@ -176,7 +250,8 @@ export const es = {
       {
         title: "Cómo entrar",
         paragraphs: [
-          "Muy pronto podrás entrar con tu cuenta de Discord. Solo usaremos tu identificador, tu nombre y tu avatar; nunca tu correo ni tu contraseña.",
+          "Pulsa «Entrar» en la cabecera y luego «Entrar con Discord». Discord te pedirá autorizar a {site}: solo compartimos tu identificador, tu nombre y tu avatar; nunca tu correo ni tu contraseña.",
+          "Para salir, pulsa «Salir» en la cabecera. Tu nombre y tu avatar se actualizan cada vez que entras.",
         ],
       },
       {

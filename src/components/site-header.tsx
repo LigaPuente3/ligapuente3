@@ -1,11 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
+import type { CurrentUser } from "@/lib/session";
 import type { Dictionary } from "@/i18n/es";
 import type { Locale } from "@/i18n/locale";
 import { LanguageSwitcher } from "./language-switcher";
+import { UserMenu } from "./user-menu";
 
-export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary }) {
+export function SiteHeader({ locale, dict, user }: { locale: Locale; dict: Dictionary; user: CurrentUser | null }) {
   const links = [
     { href: "/", label: dict.nav.home },
     { href: "/help", label: dict.nav.help },
@@ -22,17 +24,20 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
         <div className="sm:order-last">
           <LanguageSwitcher locale={locale} dict={dict} />
         </div>
-        <nav aria-label={dict.nav.label} className="w-full sm:ml-auto sm:w-auto">
-          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-            {links.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href} className="inline-flex min-h-11 items-center text-muted hover:text-text">
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 sm:ml-auto sm:w-auto">
+          <nav aria-label={dict.nav.label}>
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {links.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="inline-flex min-h-11 items-center text-muted hover:text-text">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <UserMenu user={user} dict={dict} />
+        </div>
       </div>
     </header>
   );
