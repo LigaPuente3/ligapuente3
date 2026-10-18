@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/* Tema oscuro inspirado en el cartel de puente3: madera y rojo. */
+@theme {
+  --color-bg: #0e0b09;
+  --color-surface: #1a1410;
+  --color-surface-2: #241b15;
+  --color-border: #3a2c21;
+  --color-text: #f3ece4;
+  --color-muted: #bfae9c;
+  --color-wood: #d39a5c;
+  --color-wood-light: #e8c08e;
+  --color-blood: #c0392b;
+  --color-blood-dark: #8e1f17;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-wood-light);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
