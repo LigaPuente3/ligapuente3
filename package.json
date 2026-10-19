@@ -1,6 +1,6 @@
 {
   "name": "ligapuente3",
-  "version": "0.6.0-alpha",
+  "version": "0.7.0-alpha",
   "private": true,
   "description": "Web para gestionar la liga de la comunidad de puente3.",
   "license": "MIT",
@@ -28,6 +28,8 @@
     "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
     "server-only": "0.0.1",
     "zod": "4.6.6"
   },

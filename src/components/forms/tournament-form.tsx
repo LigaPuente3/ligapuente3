@@ -64,6 +64,10 @@ export function TournamentForm({
         />
         <FieldError id="err-description" message={errorText("description")} />
       </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[8rem_1fr]">
+        {field("collectionCode", texts.collectionCode, { maxLength: 10, placeholder: "HMW" })}
+        {field("collectionName", texts.collectionName, { maxLength: 60, placeholder: "Homeworlds" })}
+      </div>
       {field("rulesUrl", texts.rulesUrl, { type: "url", inputMode: "url", placeholder: "https://", maxLength: 500 })}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {field("startsOn", texts.startsOn, { type: "date" })}

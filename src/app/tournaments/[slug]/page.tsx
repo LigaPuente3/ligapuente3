@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AchievementBadges } from "@/components/achievement-badges";
 import { FormMessage, primaryButtonClass, secondaryButtonClass } from "@/components/forms/fields";
+import { CollectionTag } from "@/components/collection-tag";
 import { LeagueSection } from "@/components/league/league-section";
 import { RegistrationReasonNote } from "@/components/registration-reason";
 import { prisma } from "@/lib/db";
@@ -22,6 +23,8 @@ async function loadTournament(slug: string) {
       id: true,
       slug: true,
       name: true,
+      collectionCode: true,
+      collectionName: true,
       description: true,
       rulesUrl: true,
       startsOn: true,
@@ -105,6 +108,11 @@ export default async function TournamentPage({ params, searchParams }: PageProps
         </Link>
       </p>
       <h1 className="text-3xl font-bold text-wood-light">{tournament.name}</h1>
+      {tournament.collectionCode || tournament.collectionName ? (
+        <p className="mt-2">
+          <CollectionTag code={tournament.collectionCode} name={tournament.collectionName} />
+        </p>
+      ) : null}
       <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
         <span>{t.status[tournament.status]}</span>
         <span className={open ? "text-wood-light" : undefined}>{open ? t.registrationOpen : t.registrationClosed}</span>

@@ -26,7 +26,7 @@ npm run dev                  # http://localhost:3100
 | `npm test` | Tests (Vitest) |
 | `npm run build` | Build de producción |
 
-Las reglas de trabajo están en [`CLAUDE.md`](CLAUDE.md) y el traspaso de servicios en [`docs/TRANSFERENCIA.md`](docs/TRANSFERENCIA.md).
+Las reglas de trabajo están en [`CLAUDE.md`](CLAUDE.md) y las de la liga en [`docs/LIGA.md`](docs/LIGA.md). La documentación técnica (servicios y traspaso) es privada y está dentro de la web, solo para sus responsables.
 
 ## Licencia
 

@@ -19,26 +19,28 @@ enum Role {
 
 /// Usuario. Solo entra con Discord: guardamos su ID, nombre visible y avatar.
 model User {
-  id              String            @id
-  name            String
+  id                String            @id
+  name              String
   /// Better Auth exige un correo; como no pedimos el ámbito `email`, se guarda
   /// uno ficticio derivado del ID de Discord (`<id>@discord.invalid`).
-  email           String            @unique
-  emailVerified   Boolean           @default(false) @map("email_verified")
-  image           String?
-  discordId       String            @unique @map("discord_id")
-  role            Role              @default(PLAYER)
+  email             String            @unique
+  emailVerified     Boolean           @default(false) @map("email_verified")
+  image             String?
+  discordId         String            @unique @map("discord_id")
+  role              Role              @default(PLAYER)
   /// Pertenencia al servidor de Discord de la comunidad (si se configura DISCORD_GUILD_ID).
   /// null = no comprobada. Se actualiza en cada inicio de sesión.
-  guildMember     Boolean?          @map("guild_member")
-  guildCheckedAt  DateTime?         @map("guild_checked_at")
-  createdAt       DateTime          @default(now()) @map("created_at")
-  updatedAt       DateTime          @updatedAt @map("updated_at")
-  sessions        Session[]
-  accounts        Account[]
-  registrations   Registration[]
-  achievements    UserAchievement[]
-  reportedMatches Match[]           @relation("MatchReporter")
+  guildMember       Boolean?          @map("guild_member")
+  guildCheckedAt    DateTime?         @map("guild_checked_at")
+  /// Puede ver la documentación privada del proyecto (lo activa un administrador por configuración).
+  projectDocsAccess Boolean           @default(false) @map("project_docs_access")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  sessions          Session[]
+  accounts          Account[]
+  registrations     Registration[]
+  achievements      UserAchievement[]
+  reportedMatches   Match[]           @relation("MatchReporter")
 
   @@map("users")
 }
@@ -114,6 +116,9 @@ model Tournament {
   slug                 String           @unique
   name                 String
   description          String?
+  /// Colección del torneo, solo como texto (p. ej. «HMW» y «Homeworlds»). Sin logos oficiales.
+  collectionCode       String?          @map("collection_code")
+  collectionName       String?          @map("collection_name")
   /// Enlace a las bases de la competición.
   rulesUrl             String?          @map("rules_url")
   startsOn             DateTime?        @map("starts_on") @db.Date
@@ -254,4 +259,16 @@ model Match {
   @@index([playerAId])
   @@index([playerBId])
   @@map("matches")
+}
+
+/// Documentación privada del proyecto (servicios, traspaso, claves, migraciones).
+/// Está en la base de datos y no en el repositorio, que es público.
+model ProjectDoc {
+  slug        String   @id
+  title       String
+  body        String
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedById String?  @map("updated_by_id")
+
+  @@map("project_docs")
 }

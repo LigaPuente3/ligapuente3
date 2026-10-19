@@ -155,6 +155,9 @@ export const tournamentSchema = z
   .object({
   name: z.string().trim().min(3, "too_short").max(100, "too_long"),
   description: optionalText(2000),
+  // Colección del torneo, solo texto (sin logos oficiales): «HMW» y «Homeworlds».
+  collectionCode: z.preprocess((v) => v ?? "", optionalText(10)).transform((v) => (v ? v.toUpperCase() : null)),
+  collectionName: z.preprocess((v) => v ?? "", optionalText(60)),
   rulesUrl: optionalText(500).refine(
     (value) => value === null || /^https:\/\/[^\s]+$/.test(value),
     "invalid_url",

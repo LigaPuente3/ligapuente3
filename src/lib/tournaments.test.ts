@@ -175,6 +175,13 @@ describe("formulario de torneo", () => {
     });
   });
 
+  it("lee la colección en mayúsculas y la deja vacía si no se pone", () => {
+    const result = validate(tournamentSchema, { ...valid, collectionCode: " hmw ", collectionName: "Homeworlds" });
+    expect(result.ok && [result.data.collectionCode, result.data.collectionName]).toEqual(["HMW", "Homeworlds"]);
+    const empty = validate(tournamentSchema, valid);
+    expect(empty.ok && [empty.data.collectionCode, empty.data.collectionName]).toEqual([null, null]);
+  });
+
   it("lee la ventana de inscripción en hora de España", () => {
     const result = validate(tournamentSchema, { ...valid, registrationOpensAt: "2026-10-20T18:00", registrationClosesAt: "2026-10-26T23:59" });
     expect(result.ok).toBe(true);

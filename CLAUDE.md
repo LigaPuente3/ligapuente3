@@ -27,12 +27,12 @@ En el equipo de desarrollo hay otros proyectos con otra cuenta de GitHub. No deb
 7. Si alguna regla no se puede cumplir, **parar y preguntar**.
 
 ## Servicios
-Reglas y decisiones de la liga en [`docs/LIGA.md`](docs/LIGA.md) (mantener al día). Inventario y traspaso en [`docs/TRANSFERENCIA.md`](docs/TRANSFERENCIA.md). Resumen: GitHub `LigaPuente3/ligapuente3` (público, MIT), Vercel `ligapuente3` (Hobby, región `fra1`), Supabase `ligapuente3-dev` y `ligapuente3-prod` (Frankfurt, sin Data API, sin integración de GitHub), aplicación de Discord `LigaPuente3` (solo OAuth2, sin enlace de instalación).
+Reglas y decisiones de la liga en [`docs/LIGA.md`](docs/LIGA.md) (mantener al día). La **documentación técnica del proyecto** (servicios, traspaso, claves a rotar, procedimiento de migraciones, operación) es **privada**: está en la base de datos y se ve en la web en `/admin/project`, solo para los administradores por configuración y quien ellos autoricen. **No volver a ponerla en el repositorio, que es público.** Resumen: GitHub `LigaPuente3/ligapuente3` (público, MIT), Vercel `ligapuente3` (Hobby, región `fra1`), Supabase `ligapuente3-dev` y `ligapuente3-prod` (Frankfurt, sin Data API, sin integración de GitHub), aplicación de Discord `LigaPuente3` (solo OAuth2, sin enlace de instalación).
 
 ## Traspasable
 - **Nada personal** en el código ni en los commits (ni nombres, ni correos, ni usuarios personales, ni rutas de un equipo concreto).
 - Todo lo que dependa de quien gestione la web va en **variables de entorno** (`src/lib/site.ts`, `.env.example`).
-- Al añadir un servicio o una variable: actualizar `.env.example` y `docs/TRANSFERENCIA.md` (incluida la lista de claves a rotar).
+- Al añadir un servicio o una variable: actualizar `.env.example` y avisar en la PR de qué hay que añadir a la documentación privada del proyecto (servicios y claves a rotar), con el texto listo para pegar.
 
 ## Flujo de cambios
 1. **Una rama por cambio, desde `origin/main`, y una PR.** Nunca push directo a `main` (está protegida por un ruleset) y **nunca PRs apiladas**. Las PRs, en español, con qué hace, cómo se ha probado y qué no se ha podido probar. Las fusiona la persona responsable desde GitHub.
@@ -47,7 +47,7 @@ Reglas y decisiones de la liga en [`docs/LIGA.md`](docs/LIGA.md) (mantener al d�
 - Prisma 7 con `@prisma/adapter-pg` (`src/lib/db.ts`): `DATABASE_URL` = pooler en modo transacción (6543), pool pequeño (`max: 3`) y `attachDatabasePool` de Vercel. `DIRECT_URL` = pooler en modo sesión (5432), solo para la CLI (`prisma.config.ts`). El cliente se genera en `src/generated/` (`postinstall`), sin necesitar conexión.
 - Better Auth (`src/lib/auth.ts`) con sesiones en base de datos y **solo Discord, ámbito `identify`** (correo ficticio `<id>@discord.invalid`; los tokens de Discord no se guardan). `getCurrentUser()` va envuelto en `cache()` de React. Roles: `src/lib/roles.ts` (ADMIN por `ADMIN_DISCORD_IDS` o columna `role`).
 - Las previews de Vercel no permiten iniciar sesión todavía (Discord exige redirecciones exactas); pendiente: plugin `oAuthProxy` de Better Auth con un secreto propio.
-- **Nunca ejecutar migraciones ni DDL contra producción.** Las migraciones viven en `prisma/migrations` como SQL y las aplica la persona responsable en el *SQL Editor* de Supabase, con guía. Procedimiento completo en [`docs/MIGRACIONES.md`](docs/MIGRACIONES.md) (cada migración se registra en la tabla `app_migrations`).
+- **Nunca ejecutar migraciones ni DDL contra producción.** Las migraciones viven en `prisma/migrations` como SQL y las aplica la persona responsable en el *SQL Editor* de Supabase, con guía. Cada migración va en una transacción y termina registrándose en la tabla `app_migrations`; se aplica primero en `ligapuente3-dev` y, antes de fusionar, en `ligapuente3-prod` (procedimiento detallado en la documentación privada).
 - Cada tabla nueva: `ALTER TABLE … ENABLE ROW LEVEL SECURITY;` y **ninguna política** (la app se conecta como `postgres`).
 - `npm run dev` usa el `.env.local` del proyecto `ligapuente3-dev`. El desarrollo nunca toca producción y nunca se escribe en producción para probar.
 - Misma región para todo (Frankfurt). Lo que no depende entre sí va en `Promise.all`; paginar, cachear y no leer de más.

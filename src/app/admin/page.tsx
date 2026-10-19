@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { can, roles, type Action } from "@/lib/roles";
+import { getProjectDocsAccess } from "@/lib/project-docs";
 import { requirePermission } from "@/lib/session";
 import { getDictionary, siteVars } from "@/i18n/server";
 import { format } from "@/i18n/locale";
@@ -36,6 +37,9 @@ export default async function AdminPage() {
     { href: "/admin/users", label: dict.admin.usersLink, icon: "👥", permission: "users.manage" },
     { href: "/admin/docs", label: dict.admin.docsLink, icon: "📖" },
   ];
+  // La documentación del proyecto solo la ven los administradores por configuración y quien ellos autoricen.
+  const docsAccess = await getProjectDocsAccess(user);
+  if (docsAccess.view) adminActions.push({ href: "/admin/project", label: dict.projectDocs.link, icon: "🔒" });
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">

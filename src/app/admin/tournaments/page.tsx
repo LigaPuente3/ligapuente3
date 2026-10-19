@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CollectionTag } from "@/components/collection-tag";
 import { FormMessage, primaryButtonClass } from "@/components/forms/fields";
 import { prisma } from "@/lib/db";
 import { formatDay } from "@/lib/format-date";
@@ -24,6 +25,8 @@ export default async function AdminTournamentsPage({ searchParams }: PageProps<"
       select: {
         id: true,
         name: true,
+        collectionCode: true,
+        collectionName: true,
         status: true,
         registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true,
         startsOn: true,
@@ -63,7 +66,10 @@ export default async function AdminTournamentsPage({ searchParams }: PageProps<"
                 href={`/admin/tournaments/${tournament.id}`}
                 className="block rounded-lg border border-border bg-surface p-4 hover:border-wood"
               >
-                <p className="font-semibold text-wood-light">{tournament.name}</p>
+                <p className="flex flex-wrap items-center gap-2 font-semibold text-wood-light">
+                  {tournament.name}
+                  <CollectionTag code={tournament.collectionCode} name={tournament.collectionName} />
+                </p>
                 <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                   <span>{dict.tournaments.status[tournament.status]}</span>
                   <span>

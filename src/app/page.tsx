@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { CollectionTag } from "@/components/collection-tag";
 import { prisma } from "@/lib/db";
 import { getDictionary, siteVars } from "@/i18n/server";
 import { registrationState } from "@/lib/tournaments";
@@ -15,7 +16,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         where: { status: { in: ["PUBLISHED", "IN_PROGRESS"] } },
         orderBy: { createdAt: "desc" },
         take: 3,
-        select: { slug: true, name: true, status: true, registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true },
+        select: { slug: true, name: true, collectionCode: true, collectionName: true, status: true, registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true },
       })
       .catch(() => []),
   ]);
@@ -63,7 +64,10 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                   href={`/tournaments/${tournament.slug}`}
                   className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-wood bg-surface p-4 hover:bg-surface-2"
                 >
-                  <span className="font-semibold text-wood-light">{tournament.name}</span>
+                  <span className="flex flex-wrap items-center gap-2 font-semibold text-wood-light">
+                    {tournament.name}
+                    <CollectionTag code={tournament.collectionCode} name={tournament.collectionName} />
+                  </span>
                   <span className="text-sm text-muted">
                     {registrationState(tournament) === "open" ? dict.tournaments.registrationOpen : dict.tournaments.status[tournament.status]}
                   </span>
