@@ -38,7 +38,10 @@ Reglas y decisiones de la liga en [`docs/LIGA.md`](docs/LIGA.md) (mantener al d�
 1. **Una rama por cambio, desde `origin/main`, y una PR.** Nunca push directo a `main` (está protegida por un ruleset) y **nunca PRs apiladas**. Las PRs, en español, con qué hace, cómo se ha probado y qué no se ha podido probar. Las fusiona la persona responsable desde GitHub.
 2. Antes de abrir la PR: `npm run lint` (incluye `check:grids`), `npm run typecheck`, `npm test` y `npm run build`. El CI ejecuta lo mismo.
 3. **Versión alfa** `0.N.0-alpha` en `package.json` (la web muestra el aviso de alfa): sube con cada PR visible, con su entrada en `src/content/changelog.ts` (un test exige que coincidan).
-4. **Ayuda (`/help`, ES y EN) y documentación de administración (`/admin/docs`) al día en la misma PR.**
+4. **La ayuda se actualiza en cada PR, no al final.** En la misma PR que cambia algo visible:
+   - **Ayuda para jugadores** (`/help`, ES y EN): cómo tiene que operar el jugador, **paso a paso** («entra en…, pulsa…, verás…»), con lenguaje **muy sencillo** y sin términos técnicos.
+   - **Guía para administradores y moderadores** (`/admin/docs`, ES y EN): igual, paso a paso y sencilla, indicando qué rol puede hacer cada cosa.
+   - Lo técnico (servicios, variables, migraciones, traspaso) va en la documentación del proyecto, no en estas ayudas.
 
 ## Base de datos e inicio de sesión
 - Prisma 7 con `@prisma/adapter-pg` (`src/lib/db.ts`): `DATABASE_URL` = pooler en modo transacción (6543), pool pequeño (`max: 3`) y `attachDatabasePool` de Vercel. `DIRECT_URL` = pooler en modo sesión (5432), solo para la CLI (`prisma.config.ts`). El cliente se genera en `src/generated/` (`postinstall`), sin necesitar conexión.
