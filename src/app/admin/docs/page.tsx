@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { TextPage } from "@/components/text-page";
-import { requireRole } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { getDictionary, siteVars } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AdminDocsPage() {
-  await requireRole("ADMIN", "/admin/docs");
+  await requirePermission("admin.access", "/admin/docs");
   const { dict } = await getDictionary();
   return (
     <TextPage

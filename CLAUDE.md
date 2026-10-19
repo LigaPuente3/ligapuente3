@@ -27,7 +27,7 @@ En el equipo de desarrollo hay otros proyectos con otra cuenta de GitHub. No deb
 7. Si alguna regla no se puede cumplir, **parar y preguntar**.
 
 ## Servicios
-Inventario y traspaso en [`docs/TRANSFERENCIA.md`](docs/TRANSFERENCIA.md). Resumen: GitHub `LigaPuente3/ligapuente3` (público, MIT), Vercel `ligapuente3` (Hobby, región `fra1`), Supabase `ligapuente3-dev` y `ligapuente3-prod` (Frankfurt, sin Data API, sin integración de GitHub), aplicación de Discord `LigaPuente3` (solo OAuth2, sin enlace de instalación).
+Reglas y decisiones de la liga en [`docs/LIGA.md`](docs/LIGA.md) (mantener al día). Inventario y traspaso en [`docs/TRANSFERENCIA.md`](docs/TRANSFERENCIA.md). Resumen: GitHub `LigaPuente3/ligapuente3` (público, MIT), Vercel `ligapuente3` (Hobby, región `fra1`), Supabase `ligapuente3-dev` y `ligapuente3-prod` (Frankfurt, sin Data API, sin integración de GitHub), aplicación de Discord `LigaPuente3` (solo OAuth2, sin enlace de instalación).
 
 ## Traspasable
 - **Nada personal** en el código ni en los commits (ni nombres, ni correos, ni usuarios personales, ni rutas de un equipo concreto).
@@ -37,7 +37,7 @@ Inventario y traspaso en [`docs/TRANSFERENCIA.md`](docs/TRANSFERENCIA.md). Resum
 ## Flujo de cambios
 1. **Una rama por cambio, desde `origin/main`, y una PR.** Nunca push directo a `main` (está protegida por un ruleset) y **nunca PRs apiladas**. Las PRs, en español, con qué hace, cómo se ha probado y qué no se ha podido probar. Las fusiona la persona responsable desde GitHub.
 2. Antes de abrir la PR: `npm run lint` (incluye `check:grids`), `npm run typecheck`, `npm test` y `npm run build`. El CI ejecuta lo mismo.
-3. **Versión** `1.0.0-beta.N` en `package.json`: sube con cada PR visible, con su entrada en `src/content/changelog.ts` (un test exige que coincidan).
+3. **Versión alfa** `0.N.0-alpha` en `package.json` (la web muestra el aviso de alfa): sube con cada PR visible, con su entrada en `src/content/changelog.ts` (un test exige que coincidan).
 4. **Ayuda (`/help`, ES y EN) y documentación de administración (`/admin/docs`) al día en la misma PR.**
 
 ## Base de datos e inicio de sesión

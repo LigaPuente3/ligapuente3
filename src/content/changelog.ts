@@ -13,6 +13,24 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.3.0-alpha",
+    date: "2026-10-19",
+    changes: {
+      es: [
+        "La web pasa a versión alfa: aviso visible en todas las páginas.",
+        "Nuevo rol de moderador, que ayuda con partidas, cruces y resultados.",
+        "Los administradores pueden nombrar moderadores y administradores desde Administración.",
+        "Tu perfil, con la opción de borrar tu cuenta.",
+      ],
+      en: [
+        "The site is now an alpha version: a notice is shown on every page.",
+        "New moderator role, who helps with matches, pairings and results.",
+        "Admins can appoint moderators and admins from the Admin area.",
+        "Your profile, with the option to delete your account.",
+      ],
+    },
+  },
+  {
     version: "1.0.0-beta.2",
     date: "2026-10-18",
     changes: {

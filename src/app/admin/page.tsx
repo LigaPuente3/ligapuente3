@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { roles } from "@/lib/roles";
-import { requireRole } from "@/lib/session";
+import { can, roles } from "@/lib/roles";
+import { requirePermission } from "@/lib/session";
 import { getDictionary, siteVars } from "@/i18n/server";
 import { format } from "@/i18n/locale";
 
@@ -28,7 +28,7 @@ async function userStats() {
 }
 
 export default async function AdminPage() {
-  await requireRole("ADMIN", "/admin");
+  const user = await requirePermission("admin.access", "/admin");
   const [{ dict }, stats] = await Promise.all([getDictionary(), userStats()]);
 
   return (
@@ -67,11 +67,20 @@ export default async function AdminPage() {
         <p className="mt-2 text-muted">{dict.admin.comingSoonBody}</p>
       </section>
 
-      <p className="mt-8">
-        <Link href="/admin/docs" className="inline-flex min-h-11 items-center text-wood-light underline hover:text-text">
-          {dict.admin.docsLink}
-        </Link>
-      </p>
+      <ul className="mt-8 flex flex-col gap-1">
+        {can(user.role, "users.manage") ? (
+          <li>
+            <Link href="/admin/users" className="inline-flex min-h-11 items-center text-wood-light underline hover:text-text">
+              {dict.admin.usersLink}
+            </Link>
+          </li>
+        ) : null}
+        <li>
+          <Link href="/admin/docs" className="inline-flex min-h-11 items-center text-wood-light underline hover:text-text">
+            {dict.admin.docsLink}
+          </Link>
+        </li>
+      </ul>
     </div>
   );
 }

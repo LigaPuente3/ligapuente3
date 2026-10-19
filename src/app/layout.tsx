@@ -35,6 +35,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {dict.nav.skipToContent}
         </a>
         <SiteHeader locale={locale} dict={dict} user={user} />
+        <p className="border-b border-border bg-surface-2 px-4 py-2 text-center text-xs text-muted">
+          {dict.stage.notice}
+        </p>
         <main id="contenido" className="w-full flex-1">
           {children}
         </main>

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "@/lib/auth-actions";
+import { can } from "@/lib/roles";
 import type { CurrentUser } from "@/lib/session";
 import type { Dictionary } from "@/i18n/es";
 
@@ -19,11 +20,17 @@ export function UserMenu({ user, dict }: { user: CurrentUser | null; dict: Dicti
 
   return (
     <div aria-label={dict.auth.userMenu} role="group" className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-      {user.image ? (
-        <Image src={user.image} alt="" width={32} height={32} className="size-8 shrink-0 rounded-full" />
-      ) : null}
-      <span className="max-w-32 truncate text-sm">{user.name}</span>
-      {user.role === "ADMIN" ? (
+      <Link
+        href="/profile"
+        title={dict.auth.profile}
+        className="flex min-h-11 min-w-0 items-center gap-2 text-sm hover:text-wood-light"
+      >
+        {user.image ? (
+          <Image src={user.image} alt="" width={32} height={32} className="size-8 shrink-0 rounded-full" />
+        ) : null}
+        <span className="max-w-32 truncate">{user.name}</span>
+      </Link>
+      {can(user.role, "admin.access") ? (
         <Link href="/admin" className="inline-flex min-h-11 items-center text-sm text-wood-light hover:text-text">
           {dict.auth.admin}
         </Link>

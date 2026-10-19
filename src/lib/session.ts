@@ -3,7 +3,7 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { forbidden, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { effectiveRole, hasRole, parseAdminIds, type Role } from "@/lib/roles";
+import { can, effectiveRole, parseAdminIds, type Action, type Role } from "@/lib/roles";
 
 export type CurrentUser = {
   id: string;
@@ -39,10 +39,16 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   };
 });
 
-/** Exige sesión y un rol mínimo. Sin sesión → /login; sin permiso → 403. */
-export async function requireRole(required: Role, returnTo: string): Promise<CurrentUser> {
+/** Exige sesión. Sin sesión → /login (y vuelta a `returnTo`). */
+export async function requireUser(returnTo: string): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(returnTo)}`);
-  if (!hasRole(user.role, required)) forbidden();
+  return user;
+}
+
+/** Exige sesión y permiso para una acción. Sin sesión → /login; sin permiso → 403. */
+export async function requirePermission(action: Action, returnTo: string): Promise<CurrentUser> {
+  const user = await requireUser(returnTo);
+  if (!can(user.role, action)) forbidden();
   return user;
 }

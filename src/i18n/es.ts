@@ -48,6 +48,7 @@ export const es = {
     signOut: "Salir",
     signInWithDiscord: "Entrar con Discord",
     admin: "Administración",
+    profile: "Perfil",
     userMenu: "Tu cuenta",
     loginTitle: "Entrar",
     loginIntro: "Entra con tu cuenta de Discord para participar en la liga de {community}.",
@@ -61,37 +62,88 @@ export const es = {
     body: "Tu cuenta no tiene permiso para ver esta página.",
     back: "Volver al inicio",
   },
+  roles: { PLAYER: "Jugador", MODERATOR: "Moderador", ADMIN: "Administrador" },
+  stage: {
+    badge: "Alfa",
+    notice: "Versión alfa: la web está en pruebas y puede cambiar o tener fallos. Los datos podrían reiniciarse.",
+  },
+  profile: {
+    title: "Tu perfil",
+    discordId: "ID de Discord",
+    role: "Rol",
+    memberSince: "Cuenta creada",
+    deleteTitle: "Borrar mi cuenta",
+    deleteBody:
+      "Se borrarán tu cuenta y tus datos personales de {site}. Si vuelves a entrar con Discord, se creará una cuenta nueva. Esta acción no se puede deshacer.",
+    deleteConfirm: "Entiendo que se borrará mi cuenta y no se puede deshacer.",
+    deleteButton: "Borrar mi cuenta",
+    deleteError: "No se ha podido borrar la cuenta. Inténtalo de nuevo o escribe a {contact}.",
+    deleted: "Tu cuenta se ha borrado.",
+  },
   admin: {
     title: "Administración",
-    intro: "Panel de administración de {site}. Solo lo ven las cuentas con rol de administrador.",
+    intro: "Panel de administración de {site}. Lo ven los moderadores y los administradores.",
     usersTitle: "Usuarios",
-    stats: { total: "Total", PLAYER: "Jugadores", ORGANIZER: "Organizadores", ADMIN: "Administradores" },
+    stats: { total: "Total", PLAYER: "Jugadores", MODERATOR: "Moderadores", ADMIN: "Administradores" },
     statsError: "No se han podido cargar los datos. Inténtalo más tarde.",
     comingSoonTitle: "Próximamente",
-    comingSoonBody: "Torneos, inscripciones, liguilla y eliminatorias.",
+    comingSoonBody: "Torneos, inscripciones, divisiones, liguilla y eliminatorias.",
     docsLink: "Documentación de administración",
+    usersLink: "Gestionar usuarios y roles",
+    users: {
+      title: "Usuarios y roles",
+      intro: "Los administradores pueden nombrar moderadores y otros administradores. Los cambios tardan hasta 5 minutos en aplicarse.",
+      search: "Buscar por nombre o ID de Discord",
+      searchButton: "Buscar",
+      empty: "No hay usuarios que coincidan.",
+      name: "Usuario",
+      role: "Rol",
+      save: "Guardar",
+      you: "Tú",
+      configAdmin: "Administrador por configuración",
+      previous: "Anterior",
+      next: "Siguiente",
+      page: "Página {page} de {pages}",
+      saved: "Rol actualizado.",
+      errors: {
+        not_allowed: "No tienes permiso para cambiar roles.",
+        self: "No puedes cambiar tu propio rol.",
+        config_admin: "Este administrador está definido en la configuración (ADMIN_DISCORD_IDS) y no se cambia desde aquí.",
+        invalid_role: "Rol no válido.",
+        not_found: "El usuario no existe.",
+        failed: "No se ha podido guardar. Inténtalo de nuevo.",
+      },
+    },
     docs: {
       title: "Documentación de administración",
-      intro: "Cómo se gestiona {site}. Se mantiene al día con cada cambio.",
+      intro: "Cómo se gestiona {site}. Versión alfa: los roles y sus permisos pueden cambiar.",
       sections: [
         {
           title: "Roles",
           paragraphs: [
-            "Hay tres roles: jugador (PLAYER), organizador (ORGANIZER) y administrador (ADMIN). Al entrar por primera vez, toda cuenta es jugador.",
-            "Son administradores las cuentas cuyo ID de Discord está en la variable de entorno ADMIN_DISCORD_IDS de Vercel (separados por comas), además de las que tengan el rol ADMIN en la base de datos.",
-            "Para cambiar el rol guardado de una cuenta, de momento se hace en el SQL Editor de Supabase: UPDATE users SET role = 'ORGANIZER' WHERE discord_id = '…'; Los cambios de rol tardan hasta 5 minutos en aplicarse.",
+            "Hay tres roles. Al entrar por primera vez, toda cuenta es jugador.",
+            "Jugador: se inscribe en torneos, juega sus partidas y puede borrar su cuenta desde su perfil.",
+            "Moderador: lo mismo que un jugador y, además, entra en este panel y ayuda con las partidas: emparejamientos y cruces, e introducir, confirmar y corregir resultados. No crea torneos, no asigna divisiones y no cambia roles.",
+            "Administrador: lo puede hacer todo: crear y gestionar torneos y divisiones, revisar inscripciones, nombrar moderadores y administradores y todo lo que hace un moderador. Los administradores también pueden jugar.",
+            "Son administradores fijos las cuentas cuyo ID de Discord está en la variable ADMIN_DISCORD_IDS de Vercel; esos no se pueden cambiar desde la web. Nadie puede cambiar su propio rol.",
+          ],
+        },
+        {
+          title: "Cómo cambiar el rol de alguien",
+          paragraphs: [
+            "La persona tiene que haber entrado al menos una vez con Discord. Después, en Administración → Gestionar usuarios y roles, búscala, elige el rol y pulsa Guardar. El cambio tarda hasta 5 minutos en aplicarse.",
           ],
         },
         {
           title: "Cómo obtener un ID de Discord",
           paragraphs: [
-            "En Discord: Ajustes de usuario → Avanzado → activa el Modo desarrollador. Después, clic derecho (o mantener pulsado) sobre el usuario → Copiar ID de usuario.",
+            "En Discord: Ajustes de usuario → Desarrollador (o Avanzado) → activa el Modo desarrollador. Después, haz clic en el usuario (o clic derecho) → Copiar ID de usuario.",
           ],
         },
         {
           title: "Estado del servicio",
           paragraphs: [
-            "La dirección /api/health indica la región en la que corre la web (debe ser fra1, Frankfurt), la hora, la última migración aplicada y el tiempo de respuesta de la base de datos (debe ser de decenas de milisegundos).",
+            "La dirección /api/health indica la región en la que corre la web (debe ser fra1, Frankfurt), la hora, la última migración aplicada y el tiempo de respuesta de la base de datos (debe ser de pocos milisegundos).",
             "Un cron diario de Vercel consulta la base de datos para que Supabase no pause el proyecto por inactividad.",
           ],
         },
@@ -104,7 +156,7 @@ export const es = {
         {
           title: "Datos personales y borrado de cuentas",
           paragraphs: [
-            "Si alguien pide borrar su cuenta, se borra su fila de la tabla users (sus sesiones y su cuenta de Discord vinculada se borran solas): DELETE FROM users WHERE discord_id = '…';",
+            "Cada persona puede borrar su cuenta desde su perfil. Si alguien lo pide por otra vía, se borra su fila de la tabla users en el SQL Editor (sus sesiones y su cuenta de Discord vinculada se borran solas): DELETE FROM users WHERE discord_id = '…';",
           ],
         },
         {
@@ -182,7 +234,7 @@ export const es = {
       {
         title: "Tus derechos y cómo borrar tu cuenta",
         paragraphs: [
-          "Puedes pedir el acceso, la rectificación, la supresión (borrado de tu cuenta), la limitación, la oposición y la portabilidad de tus datos escribiendo a {contact}. Más adelante podrás borrar tu cuenta tú mismo desde tu perfil. También puedes retirar el acceso de {site} en Discord: Ajustes de usuario → Aplicaciones autorizadas.",
+          "Puedes pedir el acceso, la rectificación, la supresión (borrado de tu cuenta), la limitación, la oposición y la portabilidad de tus datos escribiendo a {contact}. Puedes borrar tu cuenta tú mismo en cualquier momento desde tu perfil. También puedes retirar el acceso de {site} en Discord: Ajustes de usuario → Aplicaciones autorizadas.",
           "Si consideras que no hemos atendido bien tu solicitud, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).",
         ],
       },
@@ -252,6 +304,18 @@ export const es = {
         paragraphs: [
           "Pulsa «Entrar» en la cabecera y luego «Entrar con Discord». Discord te pedirá autorizar a {site}: solo compartimos tu identificador, tu nombre y tu avatar; nunca tu correo ni tu contraseña.",
           "Para salir, pulsa «Salir» en la cabecera. Tu nombre y tu avatar se actualizan cada vez que entras.",
+        ],
+      },
+      {
+        title: "Tu perfil y cómo borrar tu cuenta",
+        paragraphs: [
+          "Pulsa tu nombre en la cabecera para ver tu perfil. Al final está «Borrar mi cuenta»: marca la casilla de confirmación y pulsa el botón. Se borran tu cuenta y tus datos personales.",
+        ],
+      },
+      {
+        title: "Versión alfa",
+        paragraphs: [
+          "{site} está en pruebas: puede cambiar, tener fallos y sus datos podrían reiniciarse. Si ves algo raro, avisa a los organizadores.",
         ],
       },
       {
