@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { can, roles } from "@/lib/roles";
+import { can, roles, type Action } from "@/lib/roles";
 import { requirePermission } from "@/lib/session";
 import { getDictionary, siteVars } from "@/i18n/server";
 import { format } from "@/i18n/locale";
@@ -30,11 +30,37 @@ async function userStats() {
 export default async function AdminPage() {
   const user = await requirePermission("admin.access", "/admin");
   const [{ dict }, stats] = await Promise.all([getDictionary(), userStats()]);
+  const adminActions: { href: string; label: string; icon: string; permission?: Action }[] = [
+    { href: "/admin/tournaments", label: dict.admin.tournamentsLink, icon: "🗓️", permission: "tournaments.manage" },
+    { href: "/admin/achievements", label: dict.admin.achievementsLink, icon: "🏆", permission: "achievements.manage" },
+    { href: "/admin/users", label: dict.admin.usersLink, icon: "👥", permission: "users.manage" },
+    { href: "/admin/docs", label: dict.admin.docsLink, icon: "📖" },
+  ];
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-3xl font-bold text-wood-light">{dict.admin.title}</h1>
       <p className="mt-3 text-muted">{format(dict.admin.intro, siteVars(dict))}</p>
+
+      <nav aria-label={dict.admin.title} className="mt-6">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {adminActions
+            .filter((item) => !item.permission || can(user.role, item.permission))
+            .map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="flex min-h-14 items-center gap-3 rounded-lg border border-wood bg-surface px-4 py-3 font-semibold text-wood-light hover:bg-wood hover:text-bg"
+                >
+                  <span aria-hidden="true" className="text-xl">
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+        </ul>
+      </nav>
 
       <section aria-labelledby="usuarios" className="mt-8">
         <h2 id="usuarios" className="text-xl font-semibold">
@@ -67,20 +93,6 @@ export default async function AdminPage() {
         <p className="mt-2 text-muted">{dict.admin.comingSoonBody}</p>
       </section>
 
-      <ul className="mt-8 flex flex-col gap-1">
-        {can(user.role, "users.manage") ? (
-          <li>
-            <Link href="/admin/users" className="inline-flex min-h-11 items-center text-wood-light underline hover:text-text">
-              {dict.admin.usersLink}
-            </Link>
-          </li>
-        ) : null}
-        <li>
-          <Link href="/admin/docs" className="inline-flex min-h-11 items-center text-wood-light underline hover:text-text">
-            {dict.admin.docsLink}
-          </Link>
-        </li>
-      </ul>
     </div>
   );
 }

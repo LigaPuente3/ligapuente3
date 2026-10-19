@@ -13,6 +13,26 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.4.0-alpha",
+    date: "2026-10-19",
+    changes: {
+      es: [
+        "Nueva sección «Torneos»: consulta las ediciones de la liga y sus inscritos.",
+        "Inscripción en los torneos con formulario (sustituye al de Google), y opción de editarla o darte de baja.",
+        "Logros en tu perfil: Galactic, Regional, Sector y PQ, con iconos junto a tu nombre. La Liga Puente 3 la asignan los moderadores.",
+        "Administración de torneos: crear, publicar, abrir la inscripción y ver las inscripciones.",
+        "El panel de Administración muestra sus opciones como botones.",
+      ],
+      en: [
+        "New \"Tournaments\" section: see the league editions and who has registered.",
+        "Tournament registration with a form (replaces the Google form), with options to edit it or withdraw.",
+        "Achievements on your profile: Galactic, Regional, Sector and PQ, shown as icons next to your name. Liga Puente 3 is assigned by moderators.",
+        "Tournament admin: create, publish, open registration and review registrations.",
+        "The Admin panel shows its options as buttons.",
+      ],
+    },
+  },
+  {
     version: "0.3.0-alpha",
     date: "2026-10-19",
     changes: {

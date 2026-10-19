@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
+import { AchievementBadges } from "@/components/achievement-badges";
+import { AchievementsForm } from "@/components/forms/achievements-form";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/session";
+import { saveAchievements } from "@/lib/tournament-actions";
 import { deleteMyAccount } from "@/lib/user-actions";
 import { getDictionary, siteVars } from "@/i18n/server";
 import { format } from "@/i18n/locale";
@@ -16,10 +20,25 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
   const [{ locale, dict }, params, stored] = await Promise.all([
     getDictionary(),
     searchParams,
-    prisma.user.findUnique({ where: { id: user.id }, select: { createdAt: true } }).catch(() => null),
+    prisma.user
+      .findUnique({
+        where: { id: user.id },
+        select: {
+          createdAt: true,
+          achievements: { select: { type: true, count: true } },
+          registrations: {
+            orderBy: { createdAt: "desc" },
+            select: { tournament: { select: { slug: true, name: true, status: true } } },
+          },
+        },
+      })
+      .catch(() => null),
   ]);
   const vars = siteVars(dict);
   const t = dict.profile;
+  const achievementDefaults = Object.fromEntries(
+    (stored?.achievements ?? []).map((a) => [`achievement_${a.type}`, String(a.count)]),
+  );
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -31,7 +50,10 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
         ) : null}
         <dl className="min-w-0 text-sm">
           <dt className="sr-only">{dict.admin.users.name}</dt>
-          <dd className="truncate text-lg font-semibold">{user.name}</dd>
+          <dd className="flex min-w-0 flex-wrap items-center gap-2">
+            <span className="truncate text-lg font-semibold">{user.name}</span>
+            <AchievementBadges achievements={stored?.achievements ?? []} dict={dict} />
+          </dd>
           <div className="mt-1 flex flex-wrap gap-x-2">
             <dt className="text-muted">{t.discordId}:</dt>
             <dd className="break-all">{user.discordId}</dd>
@@ -51,6 +73,36 @@ export default async function ProfilePage({ searchParams }: PageProps<"/profile"
             </div>
           ) : null}
         </dl>
+      </section>
+
+      <section aria-labelledby="inscripciones" className="mt-10">
+        <h2 id="inscripciones" className="text-xl font-semibold">
+          {t.registrations}
+        </h2>
+        {stored && stored.registrations.length > 0 ? (
+          <ul className="mt-3 flex flex-col gap-2">
+            {stored.registrations.map(({ tournament }) => (
+              <li key={tournament.slug}>
+                <Link href={`/tournaments/${tournament.slug}`} className="inline-flex min-h-11 items-center gap-2 text-wood-light underline hover:text-text">
+                  {tournament.name}
+                  <span className="text-sm text-muted no-underline">({dict.tournaments.status[tournament.status]})</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-muted">{t.noRegistrations}</p>
+        )}
+      </section>
+
+      <section aria-labelledby="logros" className="mt-10">
+        <h2 id="logros" className="text-xl font-semibold">
+          {dict.achievements.title}
+        </h2>
+        <p className="mt-2 text-sm text-muted">{dict.achievements.intro}</p>
+        <div className="mt-4">
+          <AchievementsForm action={saveAchievements} texts={dict.achievements} defaults={achievementDefaults} />
+        </div>
       </section>
 
       <section aria-labelledby="borrar" className="mt-10 rounded-lg border border-blood-dark bg-surface-2 p-5">

@@ -65,6 +65,7 @@ describe("permisos", () => {
     expect(can("MODERATOR", "admin.access")).toBe(true);
     expect(can("MODERATOR", "matches.manage")).toBe(true);
     expect(can("MODERATOR", "results.manage")).toBe(true);
+    expect(can("MODERATOR", "achievements.manage")).toBe(true);
     expect(can("MODERATOR", "tournaments.manage")).toBe(false);
     expect(can("MODERATOR", "registrations.manage")).toBe(false);
     expect(can("MODERATOR", "users.manage")).toBe(false);
@@ -73,6 +74,7 @@ describe("permisos", () => {
   it("los jugadores no entran en administración", () => {
     expect(can("PLAYER", "admin.access")).toBe(false);
     expect(can("PLAYER", "results.manage")).toBe(false);
+    expect(can("PLAYER", "achievements.manage")).toBe(false);
   });
 
   it("los administradores pueden hacerlo todo", () => {
