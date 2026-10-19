@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AchievementBadges } from "@/components/achievement-badges";
-import { FormMessage } from "@/components/forms/fields";
+import { FormMessage, primaryButtonClass } from "@/components/forms/fields";
 import { TournamentForm } from "@/components/forms/tournament-form";
 import { prisma } from "@/lib/db";
 import { formatDateTime, toDateInput } from "@/lib/format-date";
@@ -63,6 +63,11 @@ export default async function EditTournamentPage({ params, searchParams }: PageP
       <p>
         <Link href={`/tournaments/${tournament.slug}`} className="inline-flex min-h-11 items-center text-sm text-wood-light underline hover:text-text">
           {t.publicLink} (/tournaments/{tournament.slug})
+        </Link>
+      </p>
+      <p className="mt-2">
+        <Link href={`/admin/tournaments/${tournament.id}/groups`} className={`${primaryButtonClass} inline-flex items-center`}>
+          {dict.adminGroups.link}
         </Link>
       </p>
       {query.status === "saved" ? (

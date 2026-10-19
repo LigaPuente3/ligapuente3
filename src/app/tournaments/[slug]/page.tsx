@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AchievementBadges } from "@/components/achievement-badges";
 import { FormMessage, primaryButtonClass, secondaryButtonClass } from "@/components/forms/fields";
+import { LeagueSection } from "@/components/league/league-section";
 import { prisma } from "@/lib/db";
 import { formatDay } from "@/lib/format-date";
 import { can } from "@/lib/roles";
@@ -26,6 +27,9 @@ async function loadTournament(slug: string) {
       matchDeadlineOn: true,
       status: true,
       registrationOpen: true,
+      promotions: true,
+      relegations: true,
+      _count: { select: { groups: true } },
       registrations: {
         orderBy: { createdAt: "asc" },
         select: {
@@ -72,8 +76,15 @@ export default async function TournamentPage({ params, searchParams }: PageProps
   const inviteUrl = process.env.DISCORD_GUILD_INVITE_URL?.trim();
 
   const status = typeof query.status === "string" ? query.status : "";
-  const statusMessage =
-    status === "registered" ? t.registered : status === "unregistered" ? t.unregistered : status === "not_open" ? t.notOpen : null;
+  const messages: Record<string, { text: string; ok: boolean }> = {
+    registered: { text: t.registered, ok: true },
+    unregistered: { text: t.unregistered, ok: true },
+    not_open: { text: t.notOpen, ok: false },
+    in_group: { text: dict.league.inGroupNoWithdraw, ok: false },
+    result_saved: { text: dict.league.resultSaved, ok: true },
+    result_not_allowed: { text: dict.league.resultNotAllowed, ok: false },
+  };
+  const statusMessage = messages[status] ?? null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -92,7 +103,7 @@ export default async function TournamentPage({ params, searchParams }: PageProps
 
       {statusMessage ? (
         <div className="mt-6">
-          <FormMessage tone={status === "not_open" ? "error" : "ok"} message={statusMessage} />
+          <FormMessage tone={statusMessage.ok ? "ok" : "error"} message={statusMessage.text} />
         </div>
       ) : null}
 
@@ -174,26 +185,43 @@ export default async function TournamentPage({ params, searchParams }: PageProps
         )}
       </section>
 
-      <section aria-labelledby="inscritos" className="mt-8">
-        <h2 id="inscritos" className="text-xl font-semibold">
+      <LeagueSection
+        tournamentId={tournament.id}
+        tournamentStatus={tournament.status}
+        promotions={tournament.promotions}
+        relegations={tournament.relegations}
+        user={user}
+        dict={dict}
+      />
+
+      {/* Plegable: abierta mientras se inscribe la gente; cerrada cuando ya hay grupos (la liguilla es lo importante). */}
+      <details open={tournament._count.groups === 0} className="mt-8 rounded-lg border border-border bg-surface">
+        <summary className="min-h-11 cursor-pointer px-4 py-3 text-lg font-semibold">
           {format(t.players, { count: players.length })}
-        </h2>
-        {players.length === 0 ? (
-          <p className="mt-3 text-muted">{t.noPlayers}</p>
-        ) : (
-          <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {players.map((player) => (
-              <li key={player.id} className="flex min-w-0 items-center gap-3 rounded-md border border-border bg-surface p-3">
-                {player.image ? (
-                  <Image src={player.image} alt="" width={32} height={32} className="size-8 shrink-0 rounded-full" />
-                ) : null}
-                <span className="min-w-0 truncate">{player.name}</span>
-                <AchievementBadges achievements={player.achievements} dict={dict} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        </summary>
+        <div className="px-4 pb-4">
+          {players.length === 0 ? (
+            <p className="text-muted">{t.noPlayers}</p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {players.map((player) => (
+                <li
+                  key={player.id}
+                  className="flex min-w-0 max-w-full items-center gap-2 rounded-full border border-border bg-surface-2 py-1 pr-3 pl-1 text-sm"
+                >
+                  {player.image ? (
+                    <Image src={player.image} alt="" width={24} height={24} className="size-6 shrink-0 rounded-full" />
+                  ) : (
+                    <span className="size-6 shrink-0" aria-hidden="true" />
+                  )}
+                  <span className="min-w-0 truncate">{player.name}</span>
+                  <AchievementBadges achievements={player.achievements} dict={dict} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </details>
     </div>
   );
 }
