@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { FormMessage, inputClass, primaryButtonClass } from "@/components/forms/fields";
 import { prisma } from "@/lib/db";
 import { divisionTiers } from "@/lib/league";
+import { deleteBracket, generateBracket } from "@/lib/bracket-actions";
 import { addToGroup, drawDivision, removeFromGroup, resetDivision, setDivision, setDivisionBulk } from "@/lib/league-actions";
 import { requirePermission } from "@/lib/session";
 import { getDictionary } from "@/i18n/server";
@@ -17,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function TournamentGroupsPage({ params, searchParams }: PageProps<"/admin/tournaments/[id]/groups">) {
   const { id } = await params;
   await requirePermission("registrations.manage", `/admin/tournaments/${id}/groups`);
-  const [{ dict }, query, tournament] = await Promise.all([
+  const [{ dict }, query, tournament, pendingByGroup, brackets] = await Promise.all([
     getDictionary(),
     searchParams,
     prisma.tournament.findUnique({
@@ -46,13 +47,15 @@ export default async function TournamentGroupsPage({ params, searchParams }: Pag
         },
       },
     }),
+    prisma.match.groupBy({ by: ["groupId"], where: { status: "PENDING", group: { tournamentId: id } }, _count: { _all: true } }),
+    prisma.bracket.findMany({ where: { tournamentId: id }, select: { division: true, _count: { select: { results: true } } } }),
   ]);
   if (!tournament) notFound();
   const t = dict.adminGroups;
   const l = dict.league;
   const status = typeof query.status === "string" ? query.status : "";
   const statusText = status in t.status ? t.status[status as keyof typeof t.status] : null;
-  const okStatuses = ["saved", "drawn", "reset", "added", "removed"];
+  const okStatuses = ["saved", "drawn", "reset", "added", "removed", "bracket_created", "bracket_deleted"];
 
   const unassigned = tournament.registrations.filter((r) => r.division === null);
   const groupLabel = (g: { division: (typeof divisionTiers)[number]; number: number }) =>
@@ -244,6 +247,50 @@ export default async function TournamentGroupsPage({ params, searchParams }: Pag
                 ) : null}
               </>
             )}
+
+            {groups.length > 0 ? (
+              <div className="mt-6 border-t border-border pt-4">
+                <h3 className="font-semibold">{t.bracketTitle}</h3>
+                {(() => {
+                  const bracket = brackets.find((b) => b.division === tier);
+                  const pending = groups.reduce(
+                    (n, g) => n + (pendingByGroup.find((p) => p.groupId === g.id)?._count._all ?? 0),
+                    0,
+                  );
+                  if (bracket) {
+                    return (
+                      <div className="mt-2 flex flex-col gap-2">
+                        <p className="text-sm text-wood-light">{t.bracketReady}</p>
+                        {bracket._count.results === 0 ? (
+                          <form action={deleteBracket} className="flex flex-col gap-2">
+                            <input type="hidden" name="tournamentId" value={tournament.id} />
+                            <input type="hidden" name="division" value={tier} />
+                            <p className="text-xs text-muted">{t.deleteBracketHint}</p>
+                            <label className="flex items-center gap-2 text-sm">
+                              <input type="checkbox" name="confirm" value="yes" required className="size-5 accent-blood" />
+                              {t.deleteBracketConfirm}
+                            </label>
+                            <button type="submit" className="min-h-11 self-start rounded-md border border-blood-dark px-3 text-sm hover:bg-blood-dark">
+                              {t.deleteBracket}
+                            </button>
+                          </form>
+                        ) : null}
+                      </div>
+                    );
+                  }
+                  return (
+                    <form action={generateBracket} className="mt-2 flex flex-col gap-2">
+                      <input type="hidden" name="tournamentId" value={tournament.id} />
+                      <input type="hidden" name="division" value={tier} />
+                      <p className="text-xs text-muted">{pending > 0 ? format(t.pendingCount, { count: pending }) : t.generateHint}</p>
+                      <button type="submit" disabled={pending > 0} className={`${primaryButtonClass} self-start`}>
+                        {t.generate}
+                      </button>
+                    </form>
+                  );
+                })()}
+              </div>
+            ) : null}
 
             {players.length > 0 ? (
               <details className="mt-6">

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseAchievements, selfReportedAchievementTypes } from "@/lib/achievements";
+import { awardLeagueChampion } from "@/lib/bracket-data";
 import { prisma } from "@/lib/db";
 import type { FormState } from "@/lib/form-state";
 import { requirePermission, requireUser } from "@/lib/session";
@@ -126,6 +127,14 @@ export async function saveTournament(id: string | null, _prev: FormState, formDa
       select: { id: true },
     });
     targetId = created.id;
+  }
+  // Al terminar el torneo, el campeón de Legendaria suma su Liga Puente 3 (una sola vez).
+  if (targetId && result.data.status === "FINISHED") {
+    try {
+      await awardLeagueChampion(targetId);
+    } catch (error) {
+      console.error("awardLeagueChampion", error);
+    }
   }
   revalidatePath("/admin/tournaments");
   revalidatePath("/tournaments");

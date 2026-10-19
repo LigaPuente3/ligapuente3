@@ -135,6 +135,9 @@ model Tournament {
   updatedAt            DateTime         @updatedAt @map("updated_at")
   registrations        Registration[]
   groups               Group[]
+  brackets             Bracket[]
+  /// Usuario al que ya se le sumó la Liga Puente 3 por ganar Legendaria (evita sumarla dos veces).
+  leagueAwardUserId    String?          @map("league_award_user_id")
 
   @@map("tournaments")
 }
@@ -271,4 +274,37 @@ model ProjectDoc {
   updatedById String?  @map("updated_by_id")
 
   @@map("project_docs")
+}
+
+/// Cuadro de eliminatorias de una división. La definición (quién juega y de dónde
+/// sale cada plaza) la crea src/lib/bracket.ts y se guarda tal cual.
+model Bracket {
+  id           String          @id @default(cuid())
+  tournamentId String          @map("tournament_id")
+  tournament   Tournament      @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  division     DivisionTier
+  definition   Json
+  createdAt    DateTime        @default(now()) @map("created_at")
+  results      BracketResult[]
+
+  @@unique([tournamentId, division])
+  @@map("brackets")
+}
+
+/// Resultado de un partido del cuadro, guardado con los jugadores que lo jugaron
+/// (IDs de inscripción, sin clave ajena: si alguien borra su cuenta, el resultado se conserva).
+model BracketResult {
+  id           String   @id @default(cuid())
+  bracketId    String   @map("bracket_id")
+  bracket      Bracket  @relation(fields: [bracketId], references: [id], onDelete: Cascade)
+  code         String
+  playerAId    String   @map("player_a_id")
+  playerBId    String   @map("player_b_id")
+  gamesA       Int      @map("games_a")
+  gamesB       Int      @map("games_b")
+  reportedById String?  @map("reported_by_id")
+  reportedAt   DateTime @default(now()) @map("reported_at")
+
+  @@unique([bracketId, code])
+  @@map("bracket_results")
 }

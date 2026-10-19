@@ -25,11 +25,14 @@ type Texts = {
 export function ReportResultForm({
   action,
   matchId,
+  hidden,
   rivalName,
   texts,
 }: {
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
+  /** Identifica el partido en los ID de los campos; `hidden` son los datos que se envían. */
   matchId: string;
+  hidden?: Record<string, string>;
   rivalName: string;
   texts: Texts;
 }) {
@@ -90,7 +93,9 @@ export function ReportResultForm({
       }}
       className="flex flex-col items-end gap-2"
     >
-      <input type="hidden" name="matchId" value={matchId} />
+      {Object.entries(hidden ?? { matchId }).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
       {/* Los desplegables se desactivan al confirmar: estos campos envían los valores. */}
       {confirming ? (
         <>

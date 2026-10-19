@@ -13,6 +13,24 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.8.0-alpha",
+    date: "2026-10-19",
+    changes: {
+      es: [
+        "Eliminatorias por división: cuadro de ganadores y de repesca, dibujado con líneas, con gran final (o semifinales y final si hay un solo grupo).",
+        "El cuadro se lee de abajo arriba, con el campeón en grande; en el móvil se puede ver a pantalla completa.",
+        "Los jugadores anotan sus resultados de eliminatorias y los moderadores los corrigen debajo del cuadro.",
+        "El campeón de Legendaria suma automáticamente su 🏆 Liga Puente 3 al terminar el torneo.",
+      ],
+      en: [
+        "Knockout stage per division: winners and second-chance brackets, drawn with lines, with a grand final (or semi-finals and a final with a single group).",
+        "The bracket reads from bottom to top, with the champion shown large; on phones it can be viewed full screen.",
+        "Players enter their knockout results and moderators correct them below the bracket.",
+        "The Legendary champion automatically adds their 🏆 Liga Puente 3 when the tournament finishes.",
+      ],
+    },
+  },
+  {
     version: "0.7.0-alpha",
     date: "2026-10-19",
     changes: {

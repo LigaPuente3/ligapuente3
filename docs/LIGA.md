@@ -1,6 +1,6 @@
 # Reglas y decisiones de la liga
 
-> **Implementado (0.6.0-alpha):** ventana de inscripción, cierre por moderadores, altas manuales y división en lote. **(0.5.0-alpha):** torneos, inscripción, requisito opcional del servidor de Discord, logros, **divisiones, sorteo de grupos, liguilla de todos contra todos, resultados (el ganador informa; los moderadores corrigen o marcan «No jugado») y clasificación con desempates**. **Pendiente:** eliminatorias y ascensos/descensos automáticos.
+> **Implementado (0.8.0-alpha):** eliminatorias por división (eliminación simple con un grupo, doble eliminación con varios) y 🏆 Liga Puente 3 automática. **(0.6.0-alpha):** ventana de inscripción, cierre por moderadores, altas manuales y división en lote. **(0.5.0-alpha):** torneos, inscripción, requisito opcional del servidor de Discord, logros, **divisiones, sorteo de grupos, liguilla de todos contra todos, resultados (el ganador informa; los moderadores corrigen o marcan «No jugado») y clasificación con desempates**. **Pendiente:** ascensos y descensos automáticos para la siguiente edición.
 
 Decisiones de diseño de los torneos (fase 2 en adelante). Es una **versión alfa**: las reglas pueden cambiar en cada edición, así que lo configurable debe poder ajustarse por torneo. Mantener al día en cada PR que toque torneos.
 
@@ -42,23 +42,33 @@ Decisiones de diseño de los torneos (fase 2 en adelante). Es una **versión alf
 - En estudio: que cada jugador pueda indicar la **lista de mazo** jugada en cada partido y que el resultado muestre el **arquetipo**.
 
 ## Eliminatorias (por división)
-Doble eliminación en la que los **terceros** entran directamente por el cuadro de perdedores. Ejemplo con **dos grupos** (L1 y L2):
+Todas las divisiones juegan eliminatorias, **al mejor de 3**, cuando han terminado sus grupos (todos los partidos jugados o resueltos por moderadores). Las genera un administrador.
+
+### Con un solo grupo
+- Pasan **4**: semifinales **1.º contra 4.º** y **2.º contra 3.º**, y **final** entre los ganadores (eliminación simple).
+- Si el grupo tiene menos de 4 jugadores: final directa **1.º contra 2.º**.
+
+### Con dos o más grupos: doble eliminación
+- **Cuadro de ganadores:** entran el **1.º y el 2.º** de cada grupo. En la primera ronda, un 1.º juega contra un 2.º **de otro grupo**. Con 2 grupos: A = 1.º L1 contra 2.º L2 y B = 1.º L2 contra 2.º L1.
+- Si los clasificados no llenan el cuadro (3 o más grupos), se completa con **pases directos** para los **mejores 1.º** (por puntos, juegos ganados y diferencia de juegos).
+- **Cuadro de repesca:** los **3.º están ya colocados** y esperan a los perdedores de la primera ronda; cada perdedor juega contra un 3.º **de otro grupo** siempre que se pueda. Después, los ganadores se van cruzando entre sí y con los que pierden en el cuadro de ganadores.
+- **Gran final:** ganador del cuadro de ganadores contra ganador de la repesca. Si gana el que viene de la repesca, se juega **otra final**, porque el primero aún no había perdido.
+
+Ejemplo con dos grupos (L1 y L2):
 
 | Partido | Quién juega | Ganador va a | Perdedor va a |
 |---|---|---|---|
-| **A** | 1.º de L1 contra 2.º de L2 | E | C |
-| **B** | 1.º de L2 contra 2.º de L1 | E | D |
-| **C** | perdedor de A contra un 3.º (en espera) | F | eliminado |
-| **D** | perdedor de B contra el otro 3.º (en espera) | F | eliminado |
+| **A** | 1.º de L1 contra 2.º de L2 | E | C o D |
+| **B** | 1.º de L2 contra 2.º de L1 | E | C o D |
+| **C** | perdedor de A o B contra un 3.º de otro grupo | F | eliminado |
+| **D** | el otro perdedor contra el otro 3.º | F | eliminado |
 | **E** | ganadores de A y B | H (final) | G |
 | **F** | ganadores de C y D | G | eliminado |
 | **G** | perdedor de E contra ganador de F | H (final) | eliminado |
-| **H** | **Gran final**: ganador de E contra ganador de G | campeón | — |
+| **H** | **Gran final**: ganador de E contra ganador de G | campeón | segunda final si gana el de G |
 
-- Si en la final gana quien viene por la vía de perdedores (G), se juega **otra final** (H2), porque el ganador de E aún no había perdido.
-- **Proporcional al número de grupos**: con N grupos entran en el cuadro de ganadores los 2 primeros de cada grupo (2N jugadores, cruzando 1.º de un grupo con 2.º de otro) y los N terceros esperan en el cuadro de perdedores. Si no sale una potencia de 2, se usan descansos (*byes*).
-- Se representa como un cuadro (como la imagen de la V edición); con muchas divisiones, en **pestañas plegables**, una por división.
-- Pendiente de confirmar: a qué 3.º se enfrenta cada perdedor de la primera ronda (propuesta: el perdedor de A contra el 3.º de L2 y el de B contra el 3.º de L1), y cómo se generaliza con 3 o más grupos.
+- Se representa como un cuadro, con una **sección plegable por división**.
+- El **campeón de Legendaria** suma automáticamente 1 a su 🏆 **Liga Puente 3** cuando el torneo pasa a «Terminado».
 
 ## Logros de los jugadores
 - Cada jugador indica en su perfil cuántas veces ha ganado un **PQ**, **Sector**, **Regional** o **Galactic**. Se irá ajustando.
@@ -70,6 +80,5 @@ Doble eliminación en la que los **terceros** entran directamente por el cuadro 
 - **Documentación del proyecto** (servicios, variables, claves a rotar, migraciones, traspaso): **dentro de la web**, en una página que solo ven los administradores por configuración (`ADMIN_DISCORD_IDS`) y las personas a las que ellos se lo activen. Se retira del repositorio público (que se queda solo con lo necesario para desarrollar, sin datos sensibles).
 
 ## Pendiente de decidir
-- Detalle de los cruces de terceros y generalización a 3 o más grupos (ver Eliminatorias).
 - Iconos de los logros y si los verifica alguien.
 - Listas de mazo y arquetipos: cómo se introducen y de dónde salen los datos de las cartas.
