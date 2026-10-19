@@ -19,25 +19,26 @@ enum Role {
 
 /// Usuario. Solo entra con Discord: guardamos su ID, nombre visible y avatar.
 model User {
-  id             String            @id
-  name           String
+  id              String            @id
+  name            String
   /// Better Auth exige un correo; como no pedimos el ámbito `email`, se guarda
   /// uno ficticio derivado del ID de Discord (`<id>@discord.invalid`).
-  email          String            @unique
-  emailVerified  Boolean           @default(false) @map("email_verified")
-  image          String?
-  discordId      String            @unique @map("discord_id")
-  role           Role              @default(PLAYER)
+  email           String            @unique
+  emailVerified   Boolean           @default(false) @map("email_verified")
+  image           String?
+  discordId       String            @unique @map("discord_id")
+  role            Role              @default(PLAYER)
   /// Pertenencia al servidor de Discord de la comunidad (si se configura DISCORD_GUILD_ID).
   /// null = no comprobada. Se actualiza en cada inicio de sesión.
-  guildMember    Boolean?          @map("guild_member")
-  guildCheckedAt DateTime?         @map("guild_checked_at")
-  createdAt      DateTime          @default(now()) @map("created_at")
-  updatedAt      DateTime          @updatedAt @map("updated_at")
-  sessions       Session[]
-  accounts       Account[]
-  registrations  Registration[]
-  achievements   UserAchievement[]
+  guildMember     Boolean?          @map("guild_member")
+  guildCheckedAt  DateTime?         @map("guild_checked_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  sessions        Session[]
+  accounts        Account[]
+  registrations   Registration[]
+  achievements    UserAchievement[]
+  reportedMatches Match[]           @relation("MatchReporter")
 
   @@map("users")
 }
@@ -125,6 +126,7 @@ model Tournament {
   createdAt        DateTime         @default(now()) @map("created_at")
   updatedAt        DateTime         @updatedAt @map("updated_at")
   registrations    Registration[]
+  groups           Group[]
 
   @@map("tournaments")
 }
@@ -150,6 +152,11 @@ model Registration {
   city                  String
   country               String
   rulesAcceptedAt       DateTime              @map("rules_accepted_at")
+  /// División asignada por un administrador (null = sin asignar).
+  division              DivisionTier?
+  groupMember           GroupMember?
+  matchesAsA            Match[]               @relation("MatchPlayerA")
+  matchesAsB            Match[]               @relation("MatchPlayerB")
   createdAt             DateTime              @default(now()) @map("created_at")
   updatedAt             DateTime              @updatedAt @map("updated_at")
 
@@ -177,4 +184,71 @@ model UserAchievement {
 
   @@unique([userId, type])
   @@map("user_achievements")
+}
+
+/// Divisiones, de la más alta a la más baja. La «N» (provisional) se añadirá más adelante.
+enum DivisionTier {
+  LEGENDARY
+  RARE
+  UNCOMMON
+  COMMON
+}
+
+/// Grupo de una división (p. ej. «Rara 2»). Liguilla de todos contra todos.
+model Group {
+  id           String        @id @default(cuid())
+  tournamentId String        @map("tournament_id")
+  tournament   Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  division     DivisionTier
+  number       Int
+  createdAt    DateTime      @default(now()) @map("created_at")
+  members      GroupMember[]
+  matches      Match[]
+
+  @@unique([tournamentId, division, number])
+  @@map("groups")
+}
+
+/// Jugador (inscripción) dentro de un grupo. Una inscripción solo puede estar en un grupo.
+model GroupMember {
+  id             String       @id @default(cuid())
+  groupId        String       @map("group_id")
+  group          Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  registrationId String       @unique @map("registration_id")
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@index([groupId])
+  @@map("group_members")
+}
+
+enum MatchStatus {
+  PENDING
+  PLAYED
+  NOT_PLAYED
+}
+
+/// Partido de liguilla al mejor de 3. Si un jugador borra su cuenta, su lado queda a null
+/// y el resultado se conserva para no alterar la clasificación del resto.
+model Match {
+  id           String        @id @default(cuid())
+  groupId      String        @map("group_id")
+  group        Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  playerAId    String?       @map("player_a_id")
+  playerA      Registration? @relation("MatchPlayerA", fields: [playerAId], references: [id], onDelete: SetNull)
+  playerBId    String?       @map("player_b_id")
+  playerB      Registration? @relation("MatchPlayerB", fields: [playerBId], references: [id], onDelete: SetNull)
+  status       MatchStatus   @default(PENDING)
+  gamesA       Int?          @map("games_a")
+  gamesB       Int?          @map("games_b")
+  reportedById String?       @map("reported_by_id")
+  reportedBy   User?         @relation("MatchReporter", fields: [reportedById], references: [id], onDelete: SetNull)
+  reportedAt   DateTime?     @map("reported_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@unique([groupId, playerAId, playerBId])
+  @@index([playerAId])
+  @@index([playerBId])
+  @@map("matches")
 }

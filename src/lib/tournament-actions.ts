@@ -56,6 +56,11 @@ export async function withdrawRegistration(formData: FormData): Promise<void> {
   if (!tournament || !canRegister(tournament) || formData.get("confirm") !== "yes") {
     redirect(`/tournaments/${slug}?status=not_open`);
   }
+  // Quien ya está en un grupo de la liguilla no se da de baja solo: lo gestiona un moderador.
+  const inGroup = await prisma.groupMember.count({
+    where: { registration: { tournamentId: tournament.id, userId: user.id } },
+  });
+  if (inGroup > 0) redirect(`/tournaments/${slug}?status=in_group`);
   await prisma.registration.deleteMany({ where: { tournamentId: tournament.id, userId: user.id } });
   revalidatePath(`/tournaments/${slug}`);
   redirect(`/tournaments/${slug}?status=unregistered`);

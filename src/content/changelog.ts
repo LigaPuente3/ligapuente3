@@ -13,6 +13,24 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.5.0-alpha",
+    date: "2026-10-19",
+    changes: {
+      es: [
+        "Liguilla: divisiones (Legendaria, Rara, Infrecuente y Común) y grupos sorteados al azar.",
+        "Partidos de todos contra todos al mejor de 3: cualquiera de los dos jugadores anota el resultado desde la página del torneo.",
+        "Clasificación de cada grupo con desempates por juegos ganados, enfrentamiento directo y diferencia de juegos, y colores de ascenso y descenso.",
+        "Los moderadores pueden corregir resultados o marcar partidos como no jugados.",
+      ],
+      en: [
+        "Group stage: divisions (Legendary, Rare, Uncommon and Common) and randomly drawn groups.",
+        "Best-of-3 round-robin matches: either player enters the result from the tournament page.",
+        "Standings for each group with tiebreakers by games won, head-to-head and game difference, and promotion and relegation colours.",
+        "Moderators can correct results or mark matches as not played.",
+      ],
+    },
+  },
+  {
     version: "0.4.0-alpha",
     date: "2026-10-19",
     changes: {
