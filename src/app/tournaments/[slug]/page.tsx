@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AchievementBadges } from "@/components/achievement-badges";
 import { FormMessage, primaryButtonClass, secondaryButtonClass } from "@/components/forms/fields";
 import { CollectionTag } from "@/components/collection-tag";
+import { BracketSection } from "@/components/league/bracket-section";
 import { LeagueSection } from "@/components/league/league-section";
 import { RegistrationReasonNote } from "@/components/registration-reason";
 import { prisma } from "@/lib/db";
@@ -230,6 +231,8 @@ export default async function TournamentPage({ params, searchParams }: PageProps
         user={user}
         dict={dict}
       />
+
+      <BracketSection tournamentId={tournament.id} tournamentStatus={tournament.status} user={user} dict={dict} />
 
       {/* Plegable: abierta mientras se inscribe la gente; cerrada cuando ya hay grupos (la liguilla es lo importante). */}
       <details open={tournament._count.groups === 0} className="mt-8 rounded-lg border border-border bg-surface">
