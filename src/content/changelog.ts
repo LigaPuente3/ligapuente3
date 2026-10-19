@@ -13,6 +13,24 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.6.0-alpha",
+    date: "2026-10-19",
+    changes: {
+      es: [
+        "Cada torneo tiene fecha y hora de apertura y cierre de la inscripción, y la página del torneo indica cuándo abre o hasta cuándo está abierta.",
+        "Con el torneo en juego la inscripción se cierra; los moderadores pueden cerrarla antes con un botón.",
+        "Los administradores pueden inscribir a mano a un jugador (altas tardías).",
+        "Administración más cómoda: inscripciones a ancho completo y división para varios jugadores a la vez.",
+      ],
+      en: [
+        "Each tournament has registration opening and closing dates and times, and the tournament page shows when it opens or until when it is open.",
+        "Registration closes when the tournament is in progress; moderators can close it earlier with a button.",
+        "Admins can register a player manually (late entries).",
+        "Easier admin: full-width registrations and division assignment for several players at once.",
+      ],
+    },
+  },
+  {
     version: "0.5.0-alpha",
     date: "2026-10-19",
     changes: {

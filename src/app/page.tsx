@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getDictionary, siteVars } from "@/i18n/server";
+import { registrationState } from "@/lib/tournaments";
 import { format } from "@/i18n/locale";
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
@@ -14,7 +15,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         where: { status: { in: ["PUBLISHED", "IN_PROGRESS"] } },
         orderBy: { createdAt: "desc" },
         take: 3,
-        select: { slug: true, name: true, status: true, registrationOpen: true },
+        select: { slug: true, name: true, status: true, registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true },
       })
       .catch(() => []),
   ]);
@@ -64,7 +65,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
                 >
                   <span className="font-semibold text-wood-light">{tournament.name}</span>
                   <span className="text-sm text-muted">
-                    {tournament.registrationOpen ? dict.tournaments.registrationOpen : dict.tournaments.status[tournament.status]}
+                    {registrationState(tournament) === "open" ? dict.tournaments.registrationOpen : dict.tournaments.status[tournament.status]}
                   </span>
                 </Link>
               </li>

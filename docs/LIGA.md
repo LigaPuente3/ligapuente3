@@ -1,6 +1,6 @@
 # Reglas y decisiones de la liga
 
-> **Implementado (0.5.0-alpha):** torneos, inscripción, requisito opcional del servidor de Discord, logros, **divisiones, sorteo de grupos, liguilla de todos contra todos, resultados (el ganador informa; los moderadores corrigen o marcan «No jugado») y clasificación con desempates**. **Pendiente:** eliminatorias y ascensos/descensos automáticos.
+> **Implementado (0.6.0-alpha):** ventana de inscripción, cierre por moderadores, altas manuales y división en lote. **(0.5.0-alpha):** torneos, inscripción, requisito opcional del servidor de Discord, logros, **divisiones, sorteo de grupos, liguilla de todos contra todos, resultados (el ganador informa; los moderadores corrigen o marcan «No jugado») y clasificación con desempates**. **Pendiente:** eliminatorias y ascensos/descensos automáticos.
 
 Decisiones de diseño de los torneos (fase 2 en adelante). Es una **versión alfa**: las reglas pueden cambiar en cada edición, así que lo configurable debe poder ajustarse por torneo. Mantener al día en cada PR que toque torneos.
 
@@ -19,7 +19,7 @@ Decisiones de diseño de los torneos (fase 2 en adelante). Es una **versión alf
   - Ciudad y país (obligatorios). **Solo los ven los administradores**, para saber desde dónde se juega.
   - Aceptación de las bases (obligatoria).
 - **No se pide correo electrónico** (con Discord no hace falta; RGPD: datos mínimos). Los avisos, por Discord.
-- **Ventana de inscripción** (pendiente, siguiente PR): cada torneo tendrá fecha y hora de apertura y de cierre. **Administradores y moderadores** podrán cerrarla antes. Con el torneo **«En juego»** la inscripción está **siempre cerrada**; las altas tardías las hace un administrador (inscribiendo a un usuario que ya haya entrado en la web).
+- **Ventana de inscripción**: cada torneo puede tener fecha y hora de apertura y de cierre (hora de España). Abierta solo con el torneo **«Publicado»**, la casilla «Inscripción habilitada» marcada y dentro de la ventana. **Moderadores y administradores** pueden cerrarla antes (solo un administrador la reabre). Con el torneo **«En juego»** está **siempre cerrada**; las altas tardías las hace un administrador («Inscribir a un jugador», para alguien que ya haya entrado en la web).
 
 ## Divisiones
 - Por orden: **Legendaria (L)**, **Rara (R)**, **Infrecuente (U)**, **Común (C)**. La Común es la más baja.
@@ -67,10 +67,6 @@ Doble eliminación en la que los **terceros** entran directamente por el cuadro 
 ## Ayuda y documentación (pendiente, siguiente PR)
 - **Ayuda para jugadores** (`/help`) y **ayuda para administradores y moderadores**, separadas y explicadas de forma **muy sencilla**.
 - **Documentación del proyecto** (servicios, variables, claves a rotar, migraciones, traspaso): **dentro de la web**, en una página que solo ven los administradores por configuración (`ADMIN_DISCORD_IDS`) y las personas a las que ellos se lo activen. Se retira del repositorio público (que se queda solo con lo necesario para desarrollar, sin datos sensibles).
-
-## Mejoras de administración (pendiente)
-- En la ficha de administración del torneo, las **inscripciones** se van muy abajo con muchos jugadores: mostrarlas **debajo del formulario, a ancho completo**, como una tabla o rejilla de fichas compactas.
-- Asignar la **división a varios jugadores a la vez**.
 
 ## Pendiente de decidir
 - Detalle de los cruces de terceros y generalización a 3 o más grupos (ver Eliminatorias).

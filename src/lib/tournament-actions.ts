@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import type { FormState } from "@/lib/form-state";
 import { requirePermission, requireUser } from "@/lib/session";
 import {
+  adminRegistrationSchema,
   canRegister,
   formToObject,
   guildRequirement,
@@ -25,7 +26,7 @@ export async function saveRegistration(slug: string, _prev: FormState, formData:
   const values = formToObject(formData);
 
   const [tournament, stored] = await Promise.all([
-    prisma.tournament.findUnique({ where: { slug }, select: { id: true, status: true, registrationOpen: true } }),
+    prisma.tournament.findUnique({ where: { slug }, select: { id: true, status: true, registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true } }),
     prisma.user.findUnique({ where: { id: user.id }, select: { guildMember: true } }),
   ]);
   if (!tournament || !canRegister(tournament)) return { values, message: "not_open" };
@@ -51,7 +52,7 @@ export async function withdrawRegistration(formData: FormData): Promise<void> {
   const user = await requireUser(`/tournaments/${slug}`);
   const tournament = await prisma.tournament.findUnique({
     where: { slug },
-    select: { id: true, status: true, registrationOpen: true },
+    select: { id: true, status: true, registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true },
   });
   if (!tournament || !canRegister(tournament) || formData.get("confirm") !== "yes") {
     redirect(`/tournaments/${slug}?status=not_open`);
@@ -64,6 +65,17 @@ export async function withdrawRegistration(formData: FormData): Promise<void> {
   await prisma.registration.deleteMany({ where: { tournamentId: tournament.id, userId: user.id } });
   revalidatePath(`/tournaments/${slug}`);
   redirect(`/tournaments/${slug}?status=unregistered`);
+}
+
+/** Moderadores y administradores: cerrar la inscripción antes de tiempo. */
+export async function closeRegistration(formData: FormData): Promise<void> {
+  const slug = String(formData.get("slug") ?? "");
+  await requirePermission("registrations.close", `/tournaments/${slug}`);
+  if (formData.get("confirm") !== "yes") redirect(`/tournaments/${slug}`);
+  await prisma.tournament.update({ where: { slug }, data: { registrationOpen: false } });
+  revalidatePath(`/tournaments/${slug}`);
+  revalidatePath("/tournaments");
+  redirect(`/tournaments/${slug}?status=registration_closed`);
 }
 
 /** Guarda los logros del perfil (veces que ha ganado cada torneo). */
@@ -118,6 +130,36 @@ export async function saveTournament(id: string | null, _prev: FormState, formDa
   revalidatePath("/admin/tournaments");
   revalidatePath("/tournaments");
   redirect(`/admin/tournaments/${targetId}?status=saved`);
+}
+
+/**
+ * Alta manual de un jugador por un administrador, aunque la inscripción esté
+ * cerrada o el torneo en juego (p. ej. altas tardías en la Común).
+ */
+export async function adminRegister(formData: FormData): Promise<void> {
+  const tournamentId = String(formData.get("tournamentId") ?? "");
+  await requirePermission("registrations.manage", `/admin/tournaments/${tournamentId}`);
+  const back: (status: string) => never = (status) =>
+    redirect(`/admin/tournaments/${tournamentId}?status=${status}#alta-manual`);
+
+  const result = validate(adminRegistrationSchema, formData);
+  if (!result.ok) back("add_invalid");
+  const { userId, division, ...answers } = result.data;
+
+  const [tournament, user, existing] = await Promise.all([
+    prisma.tournament.findUnique({ where: { id: tournamentId }, select: { slug: true } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { id: true } }),
+    prisma.registration.findUnique({ where: { tournamentId_userId: { tournamentId, userId } }, select: { id: true } }),
+  ]);
+  if (!tournament || !user) back("add_invalid");
+  if (existing) back("add_exists");
+
+  await prisma.registration.create({
+    data: { tournamentId, userId, ...answers, firstTimeBigWin: null, division, rulesAcceptedAt: new Date() },
+  });
+  revalidatePath(`/tournaments/${tournament.slug}`);
+  revalidatePath(`/admin/tournaments/${tournamentId}`);
+  back("added");
 }
 
 /** Borra un torneo en borrador (y sus inscripciones). */

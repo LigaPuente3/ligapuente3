@@ -20,7 +20,7 @@ export default async function RegisterPage({ params }: PageProps<"/tournaments/[
     getDictionary(),
     prisma.tournament.findUnique({
       where: { slug },
-      select: { id: true, name: true, status: true, registrationOpen: true, rulesUrl: true },
+      select: { id: true, name: true, status: true, registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true, rulesUrl: true },
     }),
     prisma.user.findUnique({ where: { id: user.id }, select: { guildMember: true } }),
   ]);

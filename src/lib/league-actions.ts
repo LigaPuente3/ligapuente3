@@ -53,6 +53,21 @@ export async function setDivision(formData: FormData): Promise<void> {
   backToGroups(tournamentId, "saved");
 }
 
+/** Asigna la misma división a varias inscripciones a la vez (las que ya están en un grupo no se tocan). */
+export async function setDivisionBulk(formData: FormData): Promise<void> {
+  const tournamentId = String(formData.get("tournamentId") ?? "");
+  await requirePermission("registrations.manage", `/admin/tournaments/${tournamentId}/groups`);
+  const division = formData.get("division");
+  const ids = formData.getAll("registrationIds").filter((v): v is string => typeof v === "string");
+  if (!isTier(division) || ids.length === 0) backToGroups(tournamentId, "none_selected");
+
+  await prisma.registration.updateMany({
+    where: { id: { in: ids }, tournamentId, groupMember: null },
+    data: { division },
+  });
+  backToGroups(tournamentId, "saved");
+}
+
 /** Sortea los grupos de una división y genera sus partidos de todos contra todos. */
 export async function drawDivision(formData: FormData): Promise<void> {
   const tournamentId = String(formData.get("tournamentId") ?? "");

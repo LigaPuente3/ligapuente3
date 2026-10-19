@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { formatDay } from "@/lib/format-date";
 import { requirePermission } from "@/lib/session";
 import { getDictionary } from "@/i18n/server";
+import { registrationState } from "@/lib/tournaments";
 import { format } from "@/i18n/locale";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,7 +25,7 @@ export default async function AdminTournamentsPage({ searchParams }: PageProps<"
         id: true,
         name: true,
         status: true,
-        registrationOpen: true,
+        registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true,
         startsOn: true,
         _count: { select: { registrations: true } },
       },
@@ -66,7 +67,7 @@ export default async function AdminTournamentsPage({ searchParams }: PageProps<"
                 <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                   <span>{dict.tournaments.status[tournament.status]}</span>
                   <span>
-                    {tournament.registrationOpen ? dict.tournaments.registrationOpen : dict.tournaments.registrationClosed}
+                    {registrationState(tournament) === "open" ? dict.tournaments.registrationOpen : dict.tournaments.registrationClosed}
                   </span>
                   {tournament.startsOn ? <span>{formatDay(tournament.startsOn, locale)}</span> : null}
                   <span>{format(t.registrations, { count: tournament._count.registrations })}</span>

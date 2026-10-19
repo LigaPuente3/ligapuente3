@@ -5,12 +5,13 @@ import { notFound } from "next/navigation";
 import { AchievementBadges } from "@/components/achievement-badges";
 import { FormMessage, primaryButtonClass, secondaryButtonClass } from "@/components/forms/fields";
 import { LeagueSection } from "@/components/league/league-section";
+import { RegistrationReasonNote } from "@/components/registration-reason";
 import { prisma } from "@/lib/db";
-import { formatDay } from "@/lib/format-date";
+import { formatDateTimeLong, formatDay } from "@/lib/format-date";
 import { can } from "@/lib/roles";
 import { getCurrentUser } from "@/lib/session";
-import { withdrawRegistration } from "@/lib/tournament-actions";
-import { canRegister, guildRequirement, isPublic } from "@/lib/tournaments";
+import { closeRegistration, withdrawRegistration } from "@/lib/tournament-actions";
+import { guildRequirement, isPublic, registrationState } from "@/lib/tournaments";
 import { getDictionary, siteVars } from "@/i18n/server";
 import { format } from "@/i18n/locale";
 
@@ -26,7 +27,7 @@ async function loadTournament(slug: string) {
       startsOn: true,
       matchDeadlineOn: true,
       status: true,
-      registrationOpen: true,
+      registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true,
       promotions: true,
       relegations: true,
       _count: { select: { groups: true } },
@@ -66,7 +67,16 @@ export default async function TournamentPage({ params, searchParams }: PageProps
   const vars = siteVars(dict);
   const players = tournament.registrations.map((r) => r.user);
   const registered = Boolean(user && players.some((p) => p.id === user.id));
-  const open = canRegister(tournament);
+  const regState = registrationState(tournament);
+  const open = regState === "open";
+  // Aviso de la ventana: cuándo abre (si aún no) o hasta cuándo está abierta.
+  const windowNote =
+    regState === "not_yet" && tournament.registrationOpensAt
+      ? format(t.opensOn, { date: formatDateTimeLong(tournament.registrationOpensAt, locale) })
+      : regState === "open" && tournament.registrationClosesAt
+        ? format(t.closesOn, { date: formatDateTimeLong(tournament.registrationClosesAt, locale) })
+        : null;
+  const canClose = Boolean(user && can(user.role, "registrations.close") && open);
 
   let guild: ReturnType<typeof guildRequirement> = "ok";
   if (user && open && !registered) {
@@ -83,6 +93,7 @@ export default async function TournamentPage({ params, searchParams }: PageProps
     in_group: { text: dict.league.inGroupNoWithdraw, ok: false },
     result_saved: { text: dict.league.resultSaved, ok: true },
     result_not_allowed: { text: dict.league.resultNotAllowed, ok: false },
+    registration_closed: { text: t.registrationClosedNow, ok: true },
   };
   const statusMessage = messages[status] ?? null;
 
@@ -96,10 +107,14 @@ export default async function TournamentPage({ params, searchParams }: PageProps
       <h1 className="text-3xl font-bold text-wood-light">{tournament.name}</h1>
       <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
         <span>{t.status[tournament.status]}</span>
-        <span className={tournament.registrationOpen ? "text-wood-light" : undefined}>
-          {tournament.registrationOpen ? t.registrationOpen : t.registrationClosed}
-        </span>
+        <span className={open ? "text-wood-light" : undefined}>{open ? t.registrationOpen : t.registrationClosed}</span>
       </p>
+
+      {user && can(user.role, "tournaments.manage") ? (
+        <div className="mt-4">
+          <RegistrationReasonNote tournament={tournament} dict={dict} locale={locale} />
+        </div>
+      ) : null}
 
       {statusMessage ? (
         <div className="mt-6">
@@ -135,6 +150,7 @@ export default async function TournamentPage({ params, searchParams }: PageProps
         <h2 id="inscripcion" className="sr-only">
           {t.register}
         </h2>
+        {windowNote ? <p className="mb-3 text-sm text-muted">{windowNote}</p> : null}
         {!user ? (
           open ? (
             <div className="flex flex-wrap items-center gap-3">
@@ -144,7 +160,7 @@ export default async function TournamentPage({ params, searchParams }: PageProps
               </Link>
             </div>
           ) : (
-            <p className="text-muted">{t.registrationClosed}</p>
+            <p className="text-muted">{regState === "not_yet" ? t.notOpen : t.registrationClosed}</p>
           )
         ) : registered ? (
           <div className="flex flex-col gap-4">
@@ -168,7 +184,7 @@ export default async function TournamentPage({ params, searchParams }: PageProps
             ) : null}
           </div>
         ) : !open ? (
-          <p className="text-muted">{t.registrationClosed}</p>
+          <p className="text-muted">{regState === "not_yet" ? t.notOpen : t.registrationClosed}</p>
         ) : guild !== "ok" ? (
           <div className="flex flex-col gap-3">
             <p>{format(guild === "not_member" ? t.guildNotMember : t.guildUnknown, vars)}</p>
@@ -183,6 +199,19 @@ export default async function TournamentPage({ params, searchParams }: PageProps
             {t.register}
           </Link>
         )}
+        {canClose ? (
+          <form action={closeRegistration} className="mt-5 flex flex-col gap-2 border-t border-border pt-4">
+            <input type="hidden" name="slug" value={slug} />
+            <p className="text-xs text-muted">{t.closeHint}</p>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="confirm" value="yes" required className="size-5 accent-blood" />
+              {t.closeConfirm}
+            </label>
+            <button type="submit" className="min-h-11 self-start rounded-md border border-blood-dark px-4 text-sm hover:bg-blood-dark">
+              {t.closeNow}
+            </button>
+          </form>
+        ) : null}
       </section>
 
       <LeagueSection

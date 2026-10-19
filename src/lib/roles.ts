@@ -16,7 +16,8 @@ export const actions = [
   "results.manage", // introducir, confirmar y corregir resultados
   "achievements.manage", // asignar logros que no marca el jugador (Liga Puente 3)
   "tournaments.manage", // crear, editar, abrir y cerrar torneos y divisiones
-  "registrations.manage", // revisar inscripciones y asignar divisiones
+  "registrations.close", // cerrar la inscripción de un torneo antes de tiempo
+  "registrations.manage", // revisar inscripciones, altas manuales y asignar divisiones
   "users.manage", // ver usuarios y cambiar roles (moderador y administrador)
 ] as const;
 export type Action = (typeof actions)[number];
@@ -29,6 +30,7 @@ export const permissions: Record<Action, readonly Role[]> = {
   "results.manage": ["MODERATOR", "ADMIN"],
   "achievements.manage": ["MODERATOR", "ADMIN"],
   "tournaments.manage": ["ADMIN"],
+  "registrations.close": ["MODERATOR", "ADMIN"],
   "registrations.manage": ["ADMIN"],
   "users.manage": ["ADMIN"],
 };
