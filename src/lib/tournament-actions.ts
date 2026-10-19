@@ -9,6 +9,7 @@ import type { FormState } from "@/lib/form-state";
 import { requirePermission, requireUser } from "@/lib/session";
 import {
   adminRegistrationSchema,
+  selectedUserIds,
   canRegister,
   formToObject,
   guildRequirement,
@@ -142,8 +143,8 @@ export async function saveTournament(id: string | null, _prev: FormState, formDa
 }
 
 /**
- * Alta manual de un jugador por un administrador, aunque la inscripción esté
- * cerrada o el torneo en juego (p. ej. altas tardías en la Común).
+ * Alta manual de uno o varios jugadores por un administrador, aunque la inscripción
+ * esté cerrada o el torneo en juego (p. ej. altas tardías en la Común).
  */
 export async function adminRegister(formData: FormData): Promise<void> {
   const tournamentId = String(formData.get("tournamentId") ?? "");
@@ -151,24 +152,30 @@ export async function adminRegister(formData: FormData): Promise<void> {
   const back: (status: string) => never = (status) =>
     redirect(`/admin/tournaments/${tournamentId}?status=${status}#alta-manual`);
 
+  const userIds = selectedUserIds(formData);
   const result = validate(adminRegistrationSchema, formData);
-  if (!result.ok) back("add_invalid");
-  const { userId, division, ...answers } = result.data;
+  if (!result.ok || userIds.length === 0) back("add_invalid");
+  const { division, ...answers } = result.data;
 
-  const [tournament, user, existing] = await Promise.all([
+  const [tournament, users] = await Promise.all([
     prisma.tournament.findUnique({ where: { id: tournamentId }, select: { slug: true } }),
-    prisma.user.findUnique({ where: { id: userId }, select: { id: true } }),
-    prisma.registration.findUnique({ where: { tournamentId_userId: { tournamentId, userId } }, select: { id: true } }),
+    // Solo personas que existen y aún no están inscritas.
+    prisma.user.findMany({
+      where: { id: { in: userIds }, registrations: { none: { tournamentId } } },
+      select: { id: true },
+    }),
   ]);
-  if (!tournament || !user) back("add_invalid");
-  if (existing) back("add_exists");
+  if (!tournament) back("add_invalid");
+  if (users.length === 0) back("add_exists");
 
-  await prisma.registration.create({
-    data: { tournamentId, userId, ...answers, firstTimeBigWin: null, division, rulesAcceptedAt: new Date() },
+  const rulesAcceptedAt = new Date();
+  const created = await prisma.registration.createMany({
+    data: users.map((u) => ({ tournamentId, userId: u.id, ...answers, firstTimeBigWin: null, division, rulesAcceptedAt })),
+    skipDuplicates: true,
   });
   revalidatePath(`/tournaments/${tournament.slug}`);
   revalidatePath(`/admin/tournaments/${tournamentId}`);
-  back("added");
+  redirect(`/admin/tournaments/${tournamentId}?status=added&n=${created.count}#alta-manual`);
 }
 
 /** Borra un torneo en borrador (y sus inscripciones). */

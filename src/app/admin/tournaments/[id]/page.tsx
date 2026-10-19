@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AchievementBadges } from "@/components/achievement-badges";
 import { FormMessage, inputClass, primaryButtonClass } from "@/components/forms/fields";
+import { SelectAll } from "@/components/forms/select-all";
 import { TournamentForm } from "@/components/forms/tournament-form";
 import { RegistrationReasonNote } from "@/components/registration-reason";
 import { tierBadgeClass } from "@/components/league/tier-styles";
@@ -13,7 +14,7 @@ import { divisionTiers } from "@/lib/league";
 import { utcToMadridInput } from "@/lib/madrid-time";
 import { requirePermission } from "@/lib/session";
 import { adminRegister, deleteTournament, saveTournament } from "@/lib/tournament-actions";
-import { previousParticipations } from "@/lib/tournaments";
+import { maxBulkRegistrations, previousParticipations } from "@/lib/tournaments";
 import { getDictionary } from "@/i18n/server";
 import { format } from "@/i18n/locale";
 
@@ -28,6 +29,8 @@ export default async function EditTournamentPage({ params, searchParams }: PageP
   const query = await searchParams;
   // Buscador del alta manual: por nombre o por ID de Discord.
   const manualQuery = typeof query.mq === "string" ? query.mq.trim().slice(0, 100) : "";
+  // «Ver todos»: lista a todas las personas que han entrado en la web y no están inscritas.
+  const showAll = query.all === "1";
   const [{ locale, dict }, tournament, candidates] = await Promise.all([
     getDictionary(),
     prisma.tournament.findUnique({
@@ -41,15 +44,17 @@ export default async function EditTournamentPage({ params, searchParams }: PageP
         },
       },
     }),
-    // Personas que ya han entrado en la web, no están inscritas y coinciden con la búsqueda.
-    manualQuery
+    // Personas que ya han entrado en la web, no están inscritas y coinciden con la búsqueda (o todas).
+    manualQuery || showAll
       ? prisma.user.findMany({
           where: {
             registrations: { none: { tournamentId: id } },
-            OR: [{ name: { contains: manualQuery, mode: "insensitive" } }, { discordId: { startsWith: manualQuery } }],
+            ...(manualQuery
+              ? { OR: [{ name: { contains: manualQuery, mode: "insensitive" } }, { discordId: { startsWith: manualQuery } }] }
+              : {}),
           },
           orderBy: { name: "asc" },
-          take: 20,
+          take: manualQuery ? 20 : maxBulkRegistrations,
           select: { id: true, name: true, image: true, discordId: true },
         })
       : Promise.resolve([]),
@@ -77,7 +82,14 @@ export default async function EditTournamentPage({ params, searchParams }: PageP
   const yesNo = (value: boolean | null) => (value === null ? "—" : value ? f.yes : f.no);
 
   const status = typeof query.status === "string" ? query.status : "";
-  const manualMessage = status in t.manualStatus ? t.manualStatus[status as keyof typeof t.manualStatus] : null;
+  const addedCount = typeof query.n === "string" ? Number.parseInt(query.n, 10) || 0 : 0;
+  const manualMessage =
+    status === "added"
+      ? format(t.manualAdded, { count: addedCount })
+      : status in t.manualStatus
+        ? t.manualStatus[status as keyof typeof t.manualStatus]
+        : null;
+  const listing = Boolean(manualQuery) || showAll;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -146,19 +158,30 @@ export default async function EditTournamentPage({ params, searchParams }: PageP
           <button type="submit" className="min-h-11 rounded-md border border-border px-4 text-sm hover:border-wood">
             {dict.admin.users.searchButton}
           </button>
+          <Link
+            href={`/admin/tournaments/${tournament.id}?all=1#alta-manual`}
+            className="inline-flex min-h-11 items-center rounded-md border border-wood px-4 text-sm font-semibold text-wood-light hover:bg-wood/10"
+          >
+            {t.manualShowAll}
+          </Link>
         </form>
-        {!manualQuery ? null : candidates.length === 0 ? (
-          <p className="mt-4 text-muted">{t.manualNoResults}</p>
+        {!listing ? null : candidates.length === 0 ? (
+          <p className="mt-4 text-muted">{showAll && !manualQuery ? t.manualNoneLeft : t.manualNoResults}</p>
         ) : (
           <form action={adminRegister} className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <input type="hidden" name="tournamentId" value={tournament.id} />
             <fieldset className="sm:col-span-2">
-              <legend className="mb-2 font-semibold">{t.manualUser}</legend>
-              <ul className="flex flex-col gap-2">
+              <legend className="mb-2 font-semibold">{format(t.manualUsers, { count: candidates.length })}</legend>
+              {candidates.length > 1 ? (
+                <div className="mb-2">
+                  <SelectAll name="userId" label={t.manualSelectAll} />
+                </div>
+              ) : null}
+              <ul className="flex max-h-[28rem] flex-col gap-2 overflow-y-auto">
                 {candidates.map((u) => (
                   <li key={u.id}>
                     <label className="flex min-h-11 min-w-0 items-center gap-3 rounded-md border border-border bg-surface px-3 py-2">
-                      <input type="radio" name="userId" value={u.id} required className="size-5 shrink-0 accent-wood" />
+                      <input type="checkbox" name="userId" value={u.id} className="size-5 shrink-0 accent-wood" />
                       {u.image ? (
                         <Image src={u.image} alt="" width={28} height={28} className="size-7 shrink-0 rounded-full" />
                       ) : null}
