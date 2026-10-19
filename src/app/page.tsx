@@ -2,12 +2,17 @@ import Image from "next/image";
 import { getDictionary, siteVars } from "@/i18n/server";
 import { format } from "@/i18n/locale";
 
-export default async function HomePage() {
-  const { dict } = await getDictionary();
+export default async function HomePage({ searchParams }: PageProps<"/">) {
+  const [{ dict }, params] = await Promise.all([getDictionary(), searchParams]);
   const vars = siteVars(dict);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-12">
+      {params.account === "deleted" ? (
+        <p role="status" className="mx-auto mb-8 max-w-2xl rounded-md border border-border bg-surface-2 p-3 text-center">
+          {dict.profile.deleted}
+        </p>
+      ) : null}
       <section className="flex flex-col items-center gap-6 text-center">
         <Image
           src="/brand/puente3-logo.png"

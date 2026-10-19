@@ -43,6 +43,7 @@ export const en: Dictionary = {
     signOut: "Sign out",
     signInWithDiscord: "Sign in with Discord",
     admin: "Admin",
+    profile: "Profile",
     userMenu: "Your account",
     loginTitle: "Sign in",
     loginIntro: "Sign in with your Discord account to take part in the {community} league.",
@@ -56,37 +57,88 @@ export const en: Dictionary = {
     body: "Your account is not allowed to see this page.",
     back: "Back to home",
   },
+  roles: { PLAYER: "Player", MODERATOR: "Moderator", ADMIN: "Admin" },
+  stage: {
+    badge: "Alpha",
+    notice: "Alpha version: the site is being tested and may change or have bugs. Data may be reset.",
+  },
+  profile: {
+    title: "Your profile",
+    discordId: "Discord ID",
+    role: "Role",
+    memberSince: "Account created",
+    deleteTitle: "Delete my account",
+    deleteBody:
+      "Your account and personal data will be deleted from {site}. If you sign in with Discord again, a new account will be created. This cannot be undone.",
+    deleteConfirm: "I understand my account will be deleted and this cannot be undone.",
+    deleteButton: "Delete my account",
+    deleteError: "The account could not be deleted. Please try again or write to {contact}.",
+    deleted: "Your account has been deleted.",
+  },
   admin: {
     title: "Admin",
-    intro: "{site} admin panel. Only accounts with the admin role can see it.",
+    intro: "{site} admin panel. Moderators and admins can see it.",
     usersTitle: "Users",
-    stats: { total: "Total", PLAYER: "Players", ORGANIZER: "Organizers", ADMIN: "Admins" },
+    stats: { total: "Total", PLAYER: "Players", MODERATOR: "Moderators", ADMIN: "Admins" },
     statsError: "The data could not be loaded. Please try again later.",
     comingSoonTitle: "Coming soon",
-    comingSoonBody: "Tournaments, registrations, group stage and knockout rounds.",
+    comingSoonBody: "Tournaments, registrations, divisions, group stage and knockout rounds.",
     docsLink: "Admin documentation",
+    usersLink: "Manage users and roles",
+    users: {
+      title: "Users and roles",
+      intro: "Admins can appoint moderators and other admins. Changes can take up to 5 minutes to apply.",
+      search: "Search by name or Discord ID",
+      searchButton: "Search",
+      empty: "No matching users.",
+      name: "User",
+      role: "Role",
+      save: "Save",
+      you: "You",
+      configAdmin: "Admin by configuration",
+      previous: "Previous",
+      next: "Next",
+      page: "Page {page} of {pages}",
+      saved: "Role updated.",
+      errors: {
+        not_allowed: "You are not allowed to change roles.",
+        self: "You cannot change your own role.",
+        config_admin: "This admin is set in the configuration (ADMIN_DISCORD_IDS) and cannot be changed here.",
+        invalid_role: "Invalid role.",
+        not_found: "The user does not exist.",
+        failed: "It could not be saved. Please try again.",
+      },
+    },
     docs: {
       title: "Admin documentation",
-      intro: "How {site} is managed. Kept up to date with every change.",
+      intro: "How {site} is managed. Alpha version: roles and their permissions may change.",
       sections: [
         {
           title: "Roles",
           paragraphs: [
-            "There are three roles: player (PLAYER), organizer (ORGANIZER) and admin (ADMIN). Every account is a player when it first signs in.",
-            "Admins are the accounts whose Discord ID is listed in the ADMIN_DISCORD_IDS environment variable in Vercel (comma separated), plus those with the ADMIN role in the database.",
-            "For now, an account's stored role is changed in the Supabase SQL Editor: UPDATE users SET role = 'ORGANIZER' WHERE discord_id = '…'; Role changes can take up to 5 minutes to apply.",
+            "There are three roles. Every account is a player when it first signs in.",
+            "Player: registers for tournaments, plays their matches and can delete their account from their profile.",
+            "Moderator: the same as a player plus access to this panel to help with matches: pairings and brackets, and entering, confirming and correcting results. They do not create tournaments, assign divisions or change roles.",
+            "Admin: can do everything: create and manage tournaments and divisions, review registrations, appoint moderators and admins, and everything a moderator does. Admins can also play.",
+            "Accounts whose Discord ID is in the ADMIN_DISCORD_IDS variable in Vercel are permanent admins and cannot be changed from the site. Nobody can change their own role.",
+          ],
+        },
+        {
+          title: "How to change someone's role",
+          paragraphs: [
+            "The person must have signed in with Discord at least once. Then, in Admin → Manage users and roles, find them, choose the role and press Save. The change can take up to 5 minutes to apply.",
           ],
         },
         {
           title: "How to get a Discord ID",
           paragraphs: [
-            "In Discord: User Settings → Advanced → turn on Developer Mode. Then right-click (or long-press) the user → Copy User ID.",
+            "In Discord: User Settings → Developer (or Advanced) → turn on Developer Mode. Then click (or right-click) the user → Copy User ID.",
           ],
         },
         {
           title: "Service status",
           paragraphs: [
-            "The /api/health address shows the region the site runs in (it must be fra1, Frankfurt), the time, the last applied migration and the database response time (it should be tens of milliseconds).",
+            "The /api/health address shows the region the site runs in (it must be fra1, Frankfurt), the time, the last applied migration and the database response time (it should be a few milliseconds).",
             "A daily Vercel cron queries the database so Supabase does not pause the project for inactivity.",
           ],
         },
@@ -99,7 +151,7 @@ export const en: Dictionary = {
         {
           title: "Personal data and account deletion",
           paragraphs: [
-            "If someone asks to delete their account, delete their row in the users table (their sessions and linked Discord account are deleted automatically): DELETE FROM users WHERE discord_id = '…';",
+            "Everyone can delete their account from their profile. If someone asks another way, delete their row in the users table in the SQL Editor (their sessions and linked Discord account are deleted automatically): DELETE FROM users WHERE discord_id = '…';",
           ],
         },
         {
@@ -173,7 +225,7 @@ export const en: Dictionary = {
       {
         title: "Your rights and how to delete your account",
         paragraphs: [
-          "You can request access, rectification, erasure (deleting your account), restriction, objection and portability of your data by writing to {contact}. Later on you will be able to delete your account yourself from your profile. You can also revoke {site}'s access in Discord: User Settings → Authorized Apps.",
+          "You can request access, rectification, erasure (deleting your account), restriction, objection and portability of your data by writing to {contact}. You can delete your account yourself at any time from your profile. You can also revoke {site}'s access in Discord: User Settings → Authorized Apps.",
           "If you believe we have not handled your request properly, you can file a complaint with the Spanish Data Protection Agency (aepd.es).",
         ],
       },
@@ -235,6 +287,18 @@ export const en: Dictionary = {
         paragraphs: [
           "Press \"Sign in\" in the header and then \"Sign in with Discord\". Discord will ask you to authorize {site}: we only share your ID, name and avatar; never your email or password.",
           "To leave, press \"Sign out\" in the header. Your name and avatar are refreshed every time you sign in.",
+        ],
+      },
+      {
+        title: "Your profile and how to delete your account",
+        paragraphs: [
+          "Press your name in the header to see your profile. At the bottom there is \"Delete my account\": tick the confirmation box and press the button. Your account and personal data are deleted.",
+        ],
+      },
+      {
+        title: "Alpha version",
+        paragraphs: [
+          "{site} is being tested: it may change, have bugs and its data may be reset. If something looks wrong, let the organizers know.",
         ],
       },
       {

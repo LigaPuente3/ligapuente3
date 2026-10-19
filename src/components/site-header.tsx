@@ -20,6 +20,9 @@ export function SiteHeader({ locale, dict, user }: { locale: Locale; dict: Dicti
         <Link href="/" className="flex min-w-0 items-center gap-2 font-bold text-wood-light">
           <Image src="/brand/puente3-logo.png" alt="" width={40} height={40} className="size-10 shrink-0 rounded" priority />
           <span className="truncate text-lg">{site.name}</span>
+          <span className="shrink-0 rounded border border-blood px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-blood">
+            {dict.stage.badge}
+          </span>
         </Link>
         <div className="sm:order-last">
           <LanguageSwitcher locale={locale} dict={dict} />

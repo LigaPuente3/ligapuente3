@@ -1,7 +1,40 @@
-export const roles = ["PLAYER", "ORGANIZER", "ADMIN"] as const;
+export const roles = ["PLAYER", "MODERATOR", "ADMIN"] as const;
 export type Role = (typeof roles)[number];
 
-const rank: Record<Role, number> = { PLAYER: 0, ORGANIZER: 1, ADMIN: 2 };
+const rank: Record<Role, number> = { PLAYER: 0, MODERATOR: 1, ADMIN: 2 };
+
+/**
+ * Acciones que se pueden hacer en la web. La tabla `permissions` decide qué rol
+ * puede hacer cada una; la documentación de administración (/admin/docs) la
+ * explica. Si cambia, actualizar las dos cosas en la misma PR.
+ */
+export const actions = [
+  "tournaments.join", // inscribirse y jugar torneos
+  "profile.delete", // borrar su propia cuenta
+  "admin.access", // entrar en el panel de administración
+  "matches.manage", // emparejamientos, cruces y partidas
+  "results.manage", // introducir, confirmar y corregir resultados
+  "tournaments.manage", // crear, editar, abrir y cerrar torneos y divisiones
+  "registrations.manage", // revisar inscripciones y asignar divisiones
+  "users.manage", // ver usuarios y cambiar roles (moderador y administrador)
+] as const;
+export type Action = (typeof actions)[number];
+
+export const permissions: Record<Action, readonly Role[]> = {
+  "tournaments.join": ["PLAYER", "MODERATOR", "ADMIN"],
+  "profile.delete": ["PLAYER", "MODERATOR", "ADMIN"],
+  "admin.access": ["MODERATOR", "ADMIN"],
+  "matches.manage": ["MODERATOR", "ADMIN"],
+  "results.manage": ["MODERATOR", "ADMIN"],
+  "tournaments.manage": ["ADMIN"],
+  "registrations.manage": ["ADMIN"],
+  "users.manage": ["ADMIN"],
+};
+
+/** ¿Puede este rol hacer esta acción? */
+export function can(role: Role, action: Action): boolean {
+  return permissions[action].includes(role);
+}
 
 /** Lee ADMIN_DISCORD_IDS ("123, 456") y devuelve los IDs válidos (solo dígitos). */
 export function parseAdminIds(raw: string | undefined): Set<string> {
@@ -13,7 +46,7 @@ export function parseAdminIds(raw: string | undefined): Set<string> {
   );
 }
 
-function isRole(value: unknown): value is Role {
+export function isRole(value: unknown): value is Role {
   return typeof value === "string" && (roles as readonly string[]).includes(value);
 }
 
@@ -29,6 +62,29 @@ export function effectiveRole(dbRole: unknown, discordId: string | null | undefi
 /** ¿Tiene el rol `actual` al menos los permisos de `required`? */
 export function hasRole(actual: Role, required: Role): boolean {
   return rank[actual] >= rank[required];
+}
+
+export type RoleChangeCheck =
+  | { ok: true }
+  | { ok: false; reason: "not_allowed" | "self" | "config_admin" | "invalid_role" };
+
+/**
+ * ¿Puede `actor` cambiar el rol guardado de `target` a `newRole`?
+ * - Solo quien puede gestionar usuarios (ADMIN).
+ * - Nadie cambia su propio rol (evita quedarse sin administradores por error).
+ * - Los administradores por ADMIN_DISCORD_IDS no se cambian desde la web.
+ */
+export function checkRoleChange(
+  actor: { id: string; role: Role },
+  target: { id: string; discordId: string | null },
+  newRole: unknown,
+  adminIds: Set<string>,
+): RoleChangeCheck {
+  if (!can(actor.role, "users.manage")) return { ok: false, reason: "not_allowed" };
+  if (!isRole(newRole)) return { ok: false, reason: "invalid_role" };
+  if (actor.id === target.id) return { ok: false, reason: "self" };
+  if (target.discordId && adminIds.has(target.discordId)) return { ok: false, reason: "config_admin" };
+  return { ok: true };
 }
 
 /** Correo ficticio que exige Better Auth (no pedimos el correo real a Discord). */
