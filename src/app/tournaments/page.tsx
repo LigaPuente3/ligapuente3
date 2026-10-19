@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { formatDay } from "@/lib/format-date";
 import { getDictionary, siteVars } from "@/i18n/server";
+import { registrationState } from "@/lib/tournaments";
 import { format } from "@/i18n/locale";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,7 +22,7 @@ export default async function TournamentsPage() {
         slug: true,
         name: true,
         status: true,
-        registrationOpen: true,
+        registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true,
         startsOn: true,
         _count: { select: { registrations: true } },
       },
@@ -46,8 +47,8 @@ export default async function TournamentsPage() {
                 <h2 className="text-xl font-semibold text-wood-light">{tournament.name}</h2>
                 <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                   <span>{t.status[tournament.status]}</span>
-                  <span className={tournament.registrationOpen ? "text-wood-light" : undefined}>
-                    {tournament.registrationOpen ? t.registrationOpen : t.registrationClosed}
+                  <span className={registrationState(tournament) === "open" ? "text-wood-light" : undefined}>
+                    {registrationState(tournament) === "open" ? t.registrationOpen : t.registrationClosed}
                   </span>
                   {tournament.startsOn ? (
                     <span>

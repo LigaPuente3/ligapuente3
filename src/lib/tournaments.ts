@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { madridLocalToUtc } from "@/lib/madrid-time";
 
 /** Lógica pura de torneos e inscripciones (sin base de datos): validación y reglas. */
 
@@ -13,9 +14,43 @@ export function isPublic(status: TournamentStatus): boolean {
   return status !== "DRAFT";
 }
 
-/** Se puede inscribir si la inscripción está abierta y el torneo está publicado o en marcha. */
-export function canRegister(tournament: { status: TournamentStatus; registrationOpen: boolean }): boolean {
-  return tournament.registrationOpen && (tournament.status === "PUBLISHED" || tournament.status === "IN_PROGRESS");
+export type RegistrationWindow = {
+  status: TournamentStatus;
+  registrationOpen: boolean;
+  registrationOpensAt?: Date | null;
+  registrationClosesAt?: Date | null;
+};
+
+export type RegistrationState = "open" | "not_yet" | "closed";
+
+/**
+ * Estado de la inscripción: abierta solo con el torneo «Publicado», la casilla
+ * marcada y dentro de la ventana (apertura y cierre, si las hay). Con el torneo
+ * en juego o terminado está siempre cerrada; las altas tardías las hace un administrador.
+ */
+export function registrationState(t: RegistrationWindow, now: Date = new Date()): RegistrationState {
+  if (t.status !== "PUBLISHED" || !t.registrationOpen) return "closed";
+  if (t.registrationClosesAt && now >= t.registrationClosesAt) return "closed";
+  if (t.registrationOpensAt && now < t.registrationOpensAt) return "not_yet";
+  return "open";
+}
+
+export type RegistrationReason = "open" | "draft" | "in_progress" | "finished" | "disabled" | "not_yet" | "ended";
+
+/** Motivo concreto del estado de la inscripción (para explicárselo a los administradores). */
+export function registrationReason(t: RegistrationWindow, now: Date = new Date()): RegistrationReason {
+  if (t.status === "DRAFT") return "draft";
+  if (t.status === "IN_PROGRESS") return "in_progress";
+  if (t.status === "FINISHED") return "finished";
+  if (!t.registrationOpen) return "disabled";
+  if (t.registrationClosesAt && now >= t.registrationClosesAt) return "ended";
+  if (t.registrationOpensAt && now < t.registrationOpensAt) return "not_yet";
+  return "open";
+}
+
+/** ¿Puede un jugador inscribirse (o editar su inscripción o darse de baja) ahora? */
+export function canRegister(t: RegistrationWindow, now: Date = new Date()): boolean {
+  return registrationState(t, now) === "open";
 }
 
 /** Dirección legible a partir del nombre: «VI Liga Puente 3» → «vi-liga-puente-3». */
@@ -65,6 +100,11 @@ const optionalText = (max: number) =>
     .max(max, "too_long")
     .transform((value) => (value === "" ? null : value));
 const yesNo = z.enum(["yes", "no"], { error: "required" }).transform((value) => value === "yes");
+const optionalDateTime = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || madridLocalToUtc(value) !== null, "invalid")
+  .transform((value) => (value === "" ? null : madridLocalToUtc(value)));
 const optionalDate = z
   .string()
   .trim()
@@ -96,7 +136,23 @@ export const registrationSchema = z
 
 export type RegistrationInput = z.output<typeof registrationSchema>;
 
-export const tournamentSchema = z.object({
+/**
+ * Alta manual hecha por un administrador (p. ej. altas tardías en la Común):
+ * la persona tiene que haber entrado en la web; ciudad y país son opcionales.
+ */
+export const adminRegistrationSchema = z.object({
+  userId: z.string().trim().min(1, "required"),
+  previousParticipation: z.enum(previousParticipations, { error: "required" }),
+  streamingConsent: yesNo,
+  city: z.string().trim().max(80, "too_long"),
+  country: z.string().trim().max(80, "too_long"),
+  division: z
+    .enum(["", "LEGENDARY", "RARE", "UNCOMMON", "COMMON"])
+    .transform((value) => (value === "" ? null : value)),
+});
+
+export const tournamentSchema = z
+  .object({
   name: z.string().trim().min(3, "too_short").max(100, "too_long"),
   description: optionalText(2000),
   rulesUrl: optionalText(500).refine(
@@ -112,7 +168,14 @@ export const tournamentSchema = z.object({
     .transform((value) => value === "on" || value === "yes"),
   promotions: z.coerce.number().int("invalid").min(0, "invalid").max(10, "invalid"),
   relegations: z.coerce.number().int("invalid").min(0, "invalid").max(10, "invalid"),
-});
+  registrationOpensAt: z.preprocess((v) => v ?? "", optionalDateTime),
+  registrationClosesAt: z.preprocess((v) => v ?? "", optionalDateTime),
+})
+  .superRefine((data, ctx) => {
+    if (data.registrationOpensAt && data.registrationClosesAt && data.registrationClosesAt <= data.registrationOpensAt) {
+      ctx.addIssue({ code: "custom", path: ["registrationClosesAt"], message: "before_open" });
+    }
+  });
 
 export type TournamentInput = z.output<typeof tournamentSchema>;
 

@@ -110,23 +110,26 @@ enum TournamentStatus {
 
 /// Una edición de la liga (p. ej. «VI Liga Puente 3»).
 model Tournament {
-  id               String           @id @default(cuid())
-  slug             String           @unique
-  name             String
-  description      String?
+  id                   String           @id @default(cuid())
+  slug                 String           @unique
+  name                 String
+  description          String?
   /// Enlace a las bases de la competición.
-  rulesUrl         String?          @map("rules_url")
-  startsOn         DateTime?        @map("starts_on") @db.Date
+  rulesUrl             String?          @map("rules_url")
+  startsOn             DateTime?        @map("starts_on") @db.Date
   /// Plazo general para jugar los partidos de la liguilla.
-  matchDeadlineOn  DateTime?        @map("match_deadline_on") @db.Date
-  status           TournamentStatus @default(DRAFT)
-  registrationOpen Boolean          @default(false) @map("registration_open")
-  promotions       Int              @default(1)
-  relegations      Int              @default(1)
-  createdAt        DateTime         @default(now()) @map("created_at")
-  updatedAt        DateTime         @updatedAt @map("updated_at")
-  registrations    Registration[]
-  groups           Group[]
+  matchDeadlineOn      DateTime?        @map("match_deadline_on") @db.Date
+  status               TournamentStatus @default(DRAFT)
+  registrationOpen     Boolean          @default(false) @map("registration_open")
+  /// Ventana de inscripción (opcional). Se guarda en UTC; se muestra en hora de España.
+  registrationOpensAt  DateTime?        @map("registration_opens_at")
+  registrationClosesAt DateTime?        @map("registration_closes_at")
+  promotions           Int              @default(1)
+  relegations          Int              @default(1)
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+  registrations        Registration[]
+  groups               Group[]
 
   @@map("tournaments")
 }

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { FormMessage, inputClass, primaryButtonClass } from "@/components/forms/fields";
 import { prisma } from "@/lib/db";
 import { divisionTiers } from "@/lib/league";
-import { addToGroup, drawDivision, removeFromGroup, resetDivision, setDivision } from "@/lib/league-actions";
+import { addToGroup, drawDivision, removeFromGroup, resetDivision, setDivision, setDivisionBulk } from "@/lib/league-actions";
 import { requirePermission } from "@/lib/session";
 import { getDictionary } from "@/i18n/server";
 import { format } from "@/i18n/locale";
@@ -97,14 +97,40 @@ export default async function TournamentGroupsPage({ params, searchParams }: Pag
         {unassigned.length === 0 ? (
           <p className="mt-2 text-muted">{t.allAssigned}</p>
         ) : (
-          <ul className="mt-4 flex flex-col gap-2">
-            {unassigned.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-surface p-3">
-                <span className="min-w-0 truncate">{r.user.name}</span>
-                {divisionSelect(r.id, null)}
-              </li>
-            ))}
-          </ul>
+          <form action={setDivisionBulk} className="mt-4 flex flex-col gap-4">
+            <input type="hidden" name="tournamentId" value={tournament.id} />
+            <p className="text-sm text-muted">{t.bulkHint}</p>
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {unassigned.map((r) => (
+                <li key={r.id}>
+                  <label className="flex min-h-11 min-w-0 items-center gap-3 rounded-md border border-border bg-surface px-3">
+                    <input type="checkbox" name="registrationIds" value={r.id} className="size-5 shrink-0 accent-wood" />
+                    <span className="min-w-0 truncate">{r.user.name}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap items-end gap-2">
+              <div>
+                <label htmlFor="bulk-division" className="mb-1 block text-sm font-semibold">
+                  {t.bulkAssign}
+                </label>
+                <select id="bulk-division" name="division" required defaultValue="" className={`${inputClass} w-auto`}>
+                  <option value="" disabled>
+                    —
+                  </option>
+                  {divisionTiers.map((tier) => (
+                    <option key={tier} value={tier}>
+                      {l.divisions[tier]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className={primaryButtonClass}>
+                {t.assign}
+              </button>
+            </div>
+          </form>
         )}
       </section>
 

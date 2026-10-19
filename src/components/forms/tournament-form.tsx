@@ -100,6 +100,10 @@ export function TournamentForm({
         </p>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {field("registrationOpensAt", texts.registrationOpensAt, { type: "datetime-local" })}
+        {field("registrationClosesAt", texts.registrationClosesAt, { type: "datetime-local" })}
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {field("promotions", texts.promotions, { type: "number", min: 0, max: 10, inputMode: "numeric" })}
         {field("relegations", texts.relegations, { type: "number", min: 0, max: 10, inputMode: "numeric" })}
       </div>

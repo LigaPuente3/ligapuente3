@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  adminRegistrationSchema,
   canRegister,
+  registrationReason,
+  registrationState,
   guildRequirement,
   isPublic,
   registrationSchema,
@@ -30,13 +33,34 @@ describe("visibilidad e inscripción", () => {
     expect(isPublic("FINISHED")).toBe(true);
   });
 
-  it("solo se inscribe con la inscripción abierta y el torneo publicado o en marcha", () => {
+  it("solo se inscribe con el torneo publicado y la casilla marcada", () => {
     expect(canRegister({ status: "PUBLISHED", registrationOpen: true })).toBe(true);
-    // La Común admite inscripciones con el torneo ya empezado.
-    expect(canRegister({ status: "IN_PROGRESS", registrationOpen: true })).toBe(true);
     expect(canRegister({ status: "PUBLISHED", registrationOpen: false })).toBe(false);
     expect(canRegister({ status: "DRAFT", registrationOpen: true })).toBe(false);
     expect(canRegister({ status: "FINISHED", registrationOpen: true })).toBe(false);
+  });
+
+  it("con el torneo en juego la inscripción está siempre cerrada", () => {
+    expect(registrationState({ status: "IN_PROGRESS", registrationOpen: true })).toBe("closed");
+  });
+
+  it("respeta la ventana de apertura y cierre", () => {
+    const window = {
+      status: "PUBLISHED" as const,
+      registrationOpen: true,
+      registrationOpensAt: new Date("2026-10-20T16:00:00Z"),
+      registrationClosesAt: new Date("2026-10-25T22:00:00Z"),
+    };
+    expect(registrationState(window, new Date("2026-10-20T15:59:00Z"))).toBe("not_yet");
+    expect(registrationState(window, new Date("2026-10-20T16:00:00Z"))).toBe("open");
+    expect(registrationState(window, new Date("2026-10-25T21:59:00Z"))).toBe("open");
+    expect(registrationState(window, new Date("2026-10-25T22:00:00Z"))).toBe("closed");
+    // Cerrada a mano (casilla desmarcada) aunque esté dentro de la ventana.
+    expect(registrationState({ ...window, registrationOpen: false }, new Date("2026-10-22T10:00:00Z"))).toBe("closed");
+  });
+
+  it("sin fechas, depende solo del estado y la casilla", () => {
+    expect(registrationState({ status: "PUBLISHED", registrationOpen: true, registrationOpensAt: null, registrationClosesAt: null })).toBe("open");
   });
 });
 
@@ -151,8 +175,78 @@ describe("formulario de torneo", () => {
     });
   });
 
+  it("lee la ventana de inscripción en hora de España", () => {
+    const result = validate(tournamentSchema, { ...valid, registrationOpensAt: "2026-10-20T18:00", registrationClosesAt: "2026-10-26T23:59" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.registrationOpensAt?.toISOString()).toBe("2026-10-20T16:00:00.000Z");
+      expect(result.data.registrationClosesAt?.toISOString()).toBe("2026-10-26T22:59:00.000Z");
+    }
+  });
+
+  it("el cierre de la inscripción tiene que ser posterior a la apertura", () => {
+    expect(validate(tournamentSchema, { ...valid, registrationOpensAt: "2026-10-26T10:00", registrationClosesAt: "2026-10-20T10:00" })).toEqual({
+      ok: false,
+      errors: { registrationClosesAt: "before_open" },
+    });
+  });
+
   it("limita ascensos y descensos entre 0 y 10", () => {
     expect(validate(tournamentSchema, { ...valid, promotions: "11" }).ok).toBe(false);
     expect(validate(tournamentSchema, { ...valid, relegations: "-1" }).ok).toBe(false);
+  });
+});
+
+describe("alta manual por un administrador", () => {
+  it("acepta un alta con división y sin ciudad ni país", () => {
+    const result = validate(adminRegistrationSchema, {
+      userId: "u1",
+      previousParticipation: "FIRST_TIME",
+      streamingConsent: "no",
+      city: "",
+      country: "",
+      division: "COMMON",
+    });
+    expect(result).toEqual({
+      ok: true,
+      data: { userId: "u1", previousParticipation: "FIRST_TIME", streamingConsent: false, city: "", country: "", division: "COMMON" },
+    });
+  });
+
+  it("exige el usuario y rechaza divisiones desconocidas", () => {
+    const result = validate(adminRegistrationSchema, {
+      userId: "",
+      previousParticipation: "LAST_EDITION",
+      streamingConsent: "yes",
+      city: "",
+      country: "",
+      division: "MYTHIC",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(Object.keys(result.errors).sort()).toEqual(["division", "userId"]);
+  });
+});
+
+describe("motivo del estado de la inscripción", () => {
+  const now = new Date("2026-10-19T10:30:00Z");
+  const base = {
+    status: "PUBLISHED" as const,
+    registrationOpen: true,
+    registrationOpensAt: new Date("2026-10-19T10:00:00Z"),
+    registrationClosesAt: new Date("2026-10-24T10:23:00Z"),
+  };
+
+  it("explica por qué está cerrada", () => {
+    expect(registrationReason({ ...base, status: "DRAFT" }, now)).toBe("draft");
+    expect(registrationReason({ ...base, status: "IN_PROGRESS" }, now)).toBe("in_progress");
+    expect(registrationReason({ ...base, status: "FINISHED" }, now)).toBe("finished");
+    expect(registrationReason({ ...base, registrationOpen: false }, now)).toBe("disabled");
+    expect(registrationReason(base, new Date("2026-10-19T09:59:00Z"))).toBe("not_yet");
+    expect(registrationReason(base, new Date("2026-10-24T10:23:00Z"))).toBe("ended");
+  });
+
+  it("y coincide con el estado cuando está abierta", () => {
+    expect(registrationReason(base, now)).toBe("open");
+    expect(registrationState(base, now)).toBe("open");
   });
 });

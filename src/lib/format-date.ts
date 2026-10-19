@@ -19,6 +19,15 @@ export function formatDateTime(date: Date, locale: Locale): string {
   });
 }
 
+/** Fecha y hora larga en horario de España: «20 de octubre de 2026, 18:00». */
+export function formatDateTimeLong(date: Date, locale: Locale): string {
+  return date.toLocaleString(locale === "es" ? "es-ES" : "en-GB", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "Europe/Madrid",
+  });
+}
+
 /** Valor para un <input type="date"> (AAAA-MM-DD) o cadena vacía. */
 export function toDateInput(date: Date | null | undefined): string {
   return date ? date.toISOString().slice(0, 10) : "";
