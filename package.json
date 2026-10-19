@@ -1,6 +1,6 @@
 {
   "name": "ligapuente3",
-  "version": "0.3.0-alpha",
+  "version": "0.4.0-alpha",
   "private": true,
   "description": "Web para gestionar la liga de la comunidad de puente3.",
   "license": "MIT",
@@ -28,7 +28,8 @@
     "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "server-only": "0.0.1"
+    "server-only": "0.0.1",
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",

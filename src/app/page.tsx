@@ -1,9 +1,23 @@
 import Image from "next/image";
+import Link from "next/link";
+import { prisma } from "@/lib/db";
 import { getDictionary, siteVars } from "@/i18n/server";
 import { format } from "@/i18n/locale";
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
-  const [{ dict }, params] = await Promise.all([getDictionary(), searchParams]);
+  const [{ dict }, params, openTournaments] = await Promise.all([
+    getDictionary(),
+    searchParams,
+    // Lo opcional nunca rompe lo principal: si la base de datos falla, el inicio se muestra igual.
+    prisma.tournament
+      .findMany({
+        where: { status: { in: ["PUBLISHED", "IN_PROGRESS"] } },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        select: { slug: true, name: true, status: true, registrationOpen: true },
+      })
+      .catch(() => []),
+  ]);
   const vars = siteVars(dict);
 
   return (
@@ -35,6 +49,34 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
         </h2>
         <p className="mt-2">{dict.home.statusBody}</p>
       </section>
+
+      {openTournaments.length > 0 ? (
+        <section aria-labelledby="torneos" className="mx-auto mt-10 max-w-2xl">
+          <h2 id="torneos" className="text-2xl font-semibold">
+            {dict.tournaments.title}
+          </h2>
+          <ul className="mt-4 flex flex-col gap-3">
+            {openTournaments.map((tournament) => (
+              <li key={tournament.slug}>
+                <Link
+                  href={`/tournaments/${tournament.slug}`}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-wood bg-surface p-4 hover:bg-surface-2"
+                >
+                  <span className="font-semibold text-wood-light">{tournament.name}</span>
+                  <span className="text-sm text-muted">
+                    {tournament.registrationOpen ? dict.tournaments.registrationOpen : dict.tournaments.status[tournament.status]}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2">
+            <Link href="/tournaments" className="inline-flex min-h-11 items-center text-sm text-wood-light underline hover:text-text">
+              {dict.tournaments.viewAll}
+            </Link>
+          </p>
+        </section>
+      ) : null}
 
       <section aria-labelledby="como-funciona" className="mt-12">
         <h2 id="como-funciona" className="text-2xl font-semibold">

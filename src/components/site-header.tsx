@@ -10,6 +10,7 @@ import { UserMenu } from "./user-menu";
 export function SiteHeader({ locale, dict, user }: { locale: Locale; dict: Dictionary; user: CurrentUser | null }) {
   const links = [
     { href: "/", label: dict.nav.home },
+    { href: "/tournaments", label: dict.nav.tournaments },
     { href: "/help", label: dict.nav.help },
     { href: "/changelog", label: dict.nav.changelog },
   ];

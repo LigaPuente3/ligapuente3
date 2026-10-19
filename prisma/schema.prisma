@@ -19,19 +19,25 @@ enum Role {
 
 /// Usuario. Solo entra con Discord: guardamos su ID, nombre visible y avatar.
 model User {
-  id            String    @id
-  name          String
+  id             String            @id
+  name           String
   /// Better Auth exige un correo; como no pedimos el ámbito `email`, se guarda
   /// uno ficticio derivado del ID de Discord (`<id>@discord.invalid`).
-  email         String    @unique
-  emailVerified Boolean   @default(false) @map("email_verified")
-  image         String?
-  discordId     String    @unique @map("discord_id")
-  role          Role      @default(PLAYER)
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  sessions      Session[]
-  accounts      Account[]
+  email          String            @unique
+  emailVerified  Boolean           @default(false) @map("email_verified")
+  image          String?
+  discordId      String            @unique @map("discord_id")
+  role           Role              @default(PLAYER)
+  /// Pertenencia al servidor de Discord de la comunidad (si se configura DISCORD_GUILD_ID).
+  /// null = no comprobada. Se actualiza en cada inicio de sesión.
+  guildMember    Boolean?          @map("guild_member")
+  guildCheckedAt DateTime?         @map("guild_checked_at")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  sessions       Session[]
+  accounts       Account[]
+  registrations  Registration[]
+  achievements   UserAchievement[]
 
   @@map("users")
 }
@@ -92,4 +98,83 @@ model AppMigration {
   appliedAt DateTime @default(now()) @map("applied_at")
 
   @@map("app_migrations")
+}
+
+enum TournamentStatus {
+  DRAFT
+  PUBLISHED
+  IN_PROGRESS
+  FINISHED
+}
+
+/// Una edición de la liga (p. ej. «VI Liga Puente 3»).
+model Tournament {
+  id               String           @id @default(cuid())
+  slug             String           @unique
+  name             String
+  description      String?
+  /// Enlace a las bases de la competición.
+  rulesUrl         String?          @map("rules_url")
+  startsOn         DateTime?        @map("starts_on") @db.Date
+  /// Plazo general para jugar los partidos de la liguilla.
+  matchDeadlineOn  DateTime?        @map("match_deadline_on") @db.Date
+  status           TournamentStatus @default(DRAFT)
+  registrationOpen Boolean          @default(false) @map("registration_open")
+  promotions       Int              @default(1)
+  relegations      Int              @default(1)
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  registrations    Registration[]
+
+  @@map("tournaments")
+}
+
+enum PreviousParticipation {
+  LAST_EDITION
+  FIRST_TIME
+  EARLIER_EDITIONS
+}
+
+/// Inscripción de un jugador en un torneo (respuestas del formulario).
+model Registration {
+  id                    String                @id @default(cuid())
+  tournamentId          String                @map("tournament_id")
+  tournament            Tournament            @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  userId                String                @map("user_id")
+  user                  User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  previousParticipation PreviousParticipation @map("previous_participation")
+  /// Solo si es su primera vez: ¿ha ganado un PQ, Sector o Regional?
+  firstTimeBigWin       Boolean?              @map("first_time_big_win")
+  streamingConsent      Boolean               @map("streaming_consent")
+  /// Ciudad y país: solo los ven los administradores.
+  city                  String
+  country               String
+  rulesAcceptedAt       DateTime              @map("rules_accepted_at")
+  createdAt             DateTime              @default(now()) @map("created_at")
+  updatedAt             DateTime              @updatedAt @map("updated_at")
+
+  @@unique([tournamentId, userId])
+  @@index([userId])
+  @@map("registrations")
+}
+
+enum AchievementType {
+  PQ
+  SECTOR
+  REGIONAL
+  GALACTIC
+  LIGA_PUENTE3
+}
+
+/// Logros que cada jugador indica en su perfil (veces que ha ganado cada cosa).
+model UserAchievement {
+  id        String          @id @default(cuid())
+  userId    String          @map("user_id")
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      AchievementType
+  count     Int             @default(1)
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  @@unique([userId, type])
+  @@map("user_achievements")
 }

@@ -14,6 +14,7 @@ export const actions = [
   "admin.access", // entrar en el panel de administración
   "matches.manage", // emparejamientos, cruces y partidas
   "results.manage", // introducir, confirmar y corregir resultados
+  "achievements.manage", // asignar logros que no marca el jugador (Liga Puente 3)
   "tournaments.manage", // crear, editar, abrir y cerrar torneos y divisiones
   "registrations.manage", // revisar inscripciones y asignar divisiones
   "users.manage", // ver usuarios y cambiar roles (moderador y administrador)
@@ -26,6 +27,7 @@ export const permissions: Record<Action, readonly Role[]> = {
   "admin.access": ["MODERATOR", "ADMIN"],
   "matches.manage": ["MODERATOR", "ADMIN"],
   "results.manage": ["MODERATOR", "ADMIN"],
+  "achievements.manage": ["MODERATOR", "ADMIN"],
   "tournaments.manage": ["ADMIN"],
   "registrations.manage": ["ADMIN"],
   "users.manage": ["ADMIN"],

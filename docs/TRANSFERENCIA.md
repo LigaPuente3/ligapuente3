@@ -55,6 +55,7 @@ La lista completa y comentada está en [`.env.example`](../.env.example). Al tra
 | `DISCORD_CLIENT_ID` | No | Solo si se crea otra aplicación de Discord |
 | `DISCORD_CLIENT_SECRET` | **Sí** | Regenerarlo en Discord |
 | `ADMIN_DISCORD_IDS` | No | IDs de Discord de los nuevos administradores |
+| `DISCORD_GUILD_ID`, `DISCORD_GUILD_INVITE_URL` | No | Servidor de Discord de la comunidad (opcionales) |
 | `CRON_SECRET` | **Sí** | Generar uno nuevo |
 
 ## Claves a rotar tras el traspaso

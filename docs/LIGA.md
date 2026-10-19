@@ -1,5 +1,7 @@
 # Reglas y decisiones de la liga
 
+> **Implementado (0.4.0-alpha):** torneos (borrador, publicado, en juego, terminado), inscripción con el formulario de abajo, requisito opcional del servidor de Discord y logros en el perfil. **Pendiente:** divisiones y grupos, liguilla, resultados, clasificaciones y eliminatorias.
+
 Decisiones de diseño de los torneos (fase 2 en adelante). Es una **versión alfa**: las reglas pueden cambiar en cada edición, así que lo configurable debe poder ajustarse por torneo. Mantener al día en cada PR que toque torneos.
 
 ## Torneo (edición de la liga)
@@ -56,7 +58,8 @@ Doble eliminación en la que los **terceros** entran directamente por el cuadro 
 - Pendiente de confirmar: a qué 3.º se enfrenta cada perdedor de la primera ronda (propuesta: el perdedor de A contra el 3.º de L2 y el de B contra el 3.º de L1), y cómo se generaliza con 3 o más grupos.
 
 ## Logros de los jugadores
-- Cada jugador puede indicar en su perfil sus logros. Lista inicial de ejemplo: ganador de **PQ**, **Sector**, **Regional**, **Galactic** y de la **Liga Puente 3** (con número de veces, p. ej. «3×»). Se irá ajustando.
+- Cada jugador indica en su perfil cuántas veces ha ganado un **PQ**, **Sector**, **Regional** o **Galactic**. Se irá ajustando.
+- **Liga Puente 3** (🏆, con número de veces): **no la marca el jugador**. Se sumará sola al campeón de cada edición jugada en esta web; las ediciones anteriores las asignan **moderadores o administradores** (Administración → Asignar «Liga Puente 3»).
 - Se muestran como iconos en su perfil y en las clasificaciones.
 
 ## Pendiente de decidir
