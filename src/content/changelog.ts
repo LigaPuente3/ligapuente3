@@ -13,6 +13,18 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.9.0-alpha",
+    date: "2026-10-19",
+    changes: {
+      es: [
+        "Inscribir jugadores: botón «Ver todos los usuarios» y selección múltiple (con «Seleccionar todos») para inscribir a varias personas de una vez.",
+      ],
+      en: [
+        "Register players: \"Show all users\" button and multiple selection (with \"Select all\") to register several people at once.",
+      ],
+    },
+  },
+  {
     version: "0.8.0-alpha",
     date: "2026-10-19",
     changes: {

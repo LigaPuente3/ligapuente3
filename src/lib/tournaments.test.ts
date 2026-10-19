@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   adminRegistrationSchema,
+  maxBulkRegistrations,
+  selectedUserIds,
   canRegister,
   registrationReason,
   registrationState,
@@ -207,7 +209,6 @@ describe("formulario de torneo", () => {
 describe("alta manual por un administrador", () => {
   it("acepta un alta con división y sin ciudad ni país", () => {
     const result = validate(adminRegistrationSchema, {
-      userId: "u1",
       previousParticipation: "FIRST_TIME",
       streamingConsent: "no",
       city: "",
@@ -216,13 +217,12 @@ describe("alta manual por un administrador", () => {
     });
     expect(result).toEqual({
       ok: true,
-      data: { userId: "u1", previousParticipation: "FIRST_TIME", streamingConsent: false, city: "", country: "", division: "COMMON" },
+      data: { previousParticipation: "FIRST_TIME", streamingConsent: false, city: "", country: "", division: "COMMON" },
     });
   });
 
-  it("exige el usuario y rechaza divisiones desconocidas", () => {
+  it("rechaza divisiones desconocidas", () => {
     const result = validate(adminRegistrationSchema, {
-      userId: "",
       previousParticipation: "LAST_EDITION",
       streamingConsent: "yes",
       city: "",
@@ -230,7 +230,20 @@ describe("alta manual por un administrador", () => {
       division: "MYTHIC",
     });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(Object.keys(result.errors).sort()).toEqual(["division", "userId"]);
+    if (!result.ok) expect(Object.keys(result.errors).sort()).toEqual(["division"]);
+  });
+
+  it("recoge varias personas marcadas, sin vacías ni repetidas", () => {
+    const form = new FormData();
+    for (const id of ["u1", " u2 ", "", "u1", "u3"]) form.append("userId", id);
+    expect(selectedUserIds(form)).toEqual(["u1", "u2", "u3"]);
+    expect(selectedUserIds(new FormData())).toEqual([]);
+  });
+
+  it("no inscribe a más de las permitidas de una vez", () => {
+    const form = new FormData();
+    for (let i = 0; i < maxBulkRegistrations + 5; i++) form.append("userId", `u${i}`);
+    expect(selectedUserIds(form)).toHaveLength(maxBulkRegistrations);
   });
 });
 

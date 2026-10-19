@@ -136,12 +136,25 @@ export const registrationSchema = z
 
 export type RegistrationInput = z.output<typeof registrationSchema>;
 
+/** Máximo de personas que se pueden inscribir de una vez desde el alta manual. */
+export const maxBulkRegistrations = 200;
+
+/** Personas marcadas en el alta manual (casillas «userId»): sin vacías ni repetidas y con tope. */
+export function selectedUserIds(form: FormData): string[] {
+  const ids = form
+    .getAll("userId")
+    .filter((v): v is string => typeof v === "string")
+    .map((v) => v.trim())
+    .filter(Boolean);
+  return [...new Set(ids)].slice(0, maxBulkRegistrations);
+}
+
 /**
- * Alta manual hecha por un administrador (p. ej. altas tardías en la Común):
- * la persona tiene que haber entrado en la web; ciudad y país son opcionales.
+ * Alta manual hecha por un administrador (p. ej. altas tardías en la Común), para
+ * una o varias personas a la vez: tienen que haber entrado en la web; las respuestas
+ * se aplican a todas y ciudad y país son opcionales.
  */
 export const adminRegistrationSchema = z.object({
-  userId: z.string().trim().min(1, "required"),
   previousParticipation: z.enum(previousParticipations, { error: "required" }),
   streamingConsent: yesNo,
   city: z.string().trim().max(80, "too_long"),
