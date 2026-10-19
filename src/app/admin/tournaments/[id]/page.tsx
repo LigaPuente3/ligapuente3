@@ -62,6 +62,8 @@ export default async function EditTournamentPage({ params, searchParams }: PageP
   const defaults = {
     name: tournament.name,
     description: tournament.description ?? "",
+    collectionCode: tournament.collectionCode ?? "",
+    collectionName: tournament.collectionName ?? "",
     rulesUrl: tournament.rulesUrl ?? "",
     startsOn: toDateInput(tournament.startsOn),
     matchDeadlineOn: toDateInput(tournament.matchDeadlineOn),

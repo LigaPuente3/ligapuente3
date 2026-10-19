@@ -91,7 +91,7 @@ export const es = {
     statsError: "No se han podido cargar los datos. Inténtalo más tarde.",
     comingSoonTitle: "Próximamente",
     comingSoonBody: "Torneos, inscripciones, divisiones, liguilla y eliminatorias.",
-    docsLink: "Documentación de administración",
+    docsLink: "Guía de administración",
     usersLink: "Gestionar usuarios y roles",
     tournamentsLink: "Gestionar torneos e inscripciones",
     achievementsLink: "Asignar «Liga Puente 3» a los jugadores",
@@ -129,8 +129,8 @@ export const es = {
       },
     },
     docs: {
-      title: "Documentación de administración",
-      intro: "Cómo se gestiona {site}. Versión alfa: los roles y sus permisos pueden cambiar.",
+      title: "Guía de administración",
+      intro: "Cómo se gestiona {site}, paso a paso, para administradores y moderadores. Versión alfa: puede cambiar.",
       sections: [
         {
           title: "Roles",
@@ -164,6 +164,14 @@ export const es = {
           ],
         },
         {
+          title: "Logro «Liga Puente 3» (moderadores y administradores)",
+          paragraphs: [
+            "1. Administración → «Asignar Liga Puente 3 a los jugadores».",
+            "2. Busca al jugador por nombre o ID de Discord, escribe cuántas ediciones ha ganado y pulsa «Guardar». Con 0 se quita.",
+            "Los jugadores no pueden marcarse este logro ellos mismos.",
+          ],
+        },
+        {
           title: "Cómo cambiar el rol de alguien",
           paragraphs: [
             "La persona tiene que haber entrado al menos una vez con Discord. Después, en Administración → Gestionar usuarios y roles, búscala, elige el rol y pulsa Guardar. El cambio tarda hasta 5 minutos en aplicarse.",
@@ -176,28 +184,9 @@ export const es = {
           ],
         },
         {
-          title: "Estado del servicio",
-          paragraphs: [
-            "La dirección /api/health indica la región en la que corre la web (debe ser fra1, Frankfurt), la hora, la última migración aplicada y el tiempo de respuesta de la base de datos (debe ser de pocos milisegundos).",
-            "Un cron diario de Vercel consulta la base de datos para que Supabase no pause el proyecto por inactividad.",
-          ],
-        },
-        {
-          title: "Base de datos y migraciones",
-          paragraphs: [
-            "Los cambios de estructura de la base de datos se aplican a mano en el SQL Editor de Supabase, primero en desarrollo y después en producción, siguiendo docs/MIGRACIONES.md del repositorio.",
-          ],
-        },
-        {
           title: "Datos personales y borrado de cuentas",
           paragraphs: [
             "Cada persona puede borrar su cuenta desde su perfil. Si alguien lo pide por otra vía, se borra su fila de la tabla users en el SQL Editor (sus sesiones y su cuenta de Discord vinculada se borran solas): DELETE FROM users WHERE discord_id = '…';",
-          ],
-        },
-        {
-          title: "Traspaso",
-          paragraphs: [
-            "Los servicios, las variables de entorno y las claves a rotar están en docs/TRANSFERENCIA.md del repositorio.",
           ],
         },
       ],
@@ -274,6 +263,8 @@ export const es = {
     name: "Nombre",
     description: "Descripción (opcional)",
     rulesUrl: "Enlace a las bases (https://…, opcional)",
+    collectionCode: "Colección (código)",
+    collectionName: "Colección (nombre)",
     startsOn: "Fecha de inicio (opcional)",
     matchDeadlineOn: "Plazo para jugar la liguilla (opcional)",
     status: "Estado",
@@ -436,6 +427,34 @@ export const es = {
       none_selected: "Marca al menos un jugador y elige la división.",
     },
   },
+  projectDocs: {
+    title: "Documentación del proyecto",
+    intro:
+      "Solo la ven los administradores por configuración y los administradores a los que ellos activen el acceso (a moderadores y jugadores no se les puede dar). Se guarda en la base de datos, no en el repositorio público.",
+    link: "Documentación del proyecto",
+    documents: "Documentos",
+    empty: "Todavía no hay documentos.",
+    newDoc: "Nuevo documento",
+    edit: "Editar",
+    slug: "Identificador (minúsculas, números y guiones)",
+    docTitle: "Título",
+    body: "Contenido",
+    bodyHelp: "Puedes usar Markdown: # títulos, - listas, **negrita**, tablas con |, enlaces [texto](https://…).",
+    save: "Guardar",
+    cancel: "Cancelar",
+    delete: "Borrar documento",
+    deleteConfirm: "Confirmo que quiero borrar este documento",
+    updated: "Actualizado el {date}",
+    saved: "Documento guardado.",
+    deleted: "Documento borrado.",
+    invalid: "Revisa el identificador, el título y el contenido.",
+    access: "Documentación del proyecto",
+    accessAlways: "Siempre (administrador por configuración)",
+    grant: "Dar acceso",
+    revoke: "Quitar acceso",
+    hasAccess: "Con acceso",
+    noAccess: "Sin acceso",
+  },
   footer: {
     unofficial:
       "Proyecto de la comunidad, no oficial: no está afiliado ni respaldado por los titulares del juego.",
@@ -591,9 +610,12 @@ export const es = {
       {
         title: "Liguilla y resultados",
         paragraphs: [
-          "Los administradores te asignan una división (Legendaria, Rara, Infrecuente o Común) y se sortean los grupos. En cada grupo juegas contra todos, al mejor de 3, dentro del plazo del torneo.",
-          "Cuando terminéis un partido, entra en la página del torneo y, en «Tus partidos pendientes», elige tus juegos y los de tu rival (0, 1 o 2) y pulsa «Guardar resultado». Puede anotarlo cualquiera de los dos. Antes de guardar se pide confirmación: después solo un moderador o un administrador puede cambiarlo, así que si hay algún error, avísale.",
-          "Clasificación: victoria 3 puntos y derrota 0. Desempates: juegos ganados, enfrentamiento directo y diferencia de juegos.",
+          "1. Cuando empiece el torneo, entra en su página: en «Liguilla» verás tu división, tu grupo y a tus rivales.",
+          "2. Queda con cada rival de tu grupo (por Discord) y jugad al mejor de 3 antes del plazo del torneo.",
+          "3. Al terminar, en «Tus partidos», elige tus juegos y los del rival (0, 1 o 2), pulsa «Guardar resultado» y confirma con «Sí, guardar». Puede anotarlo cualquiera de los dos.",
+          "4. Si te equivocas, avisa a un moderador: una vez guardado, solo él puede cambiarlo.",
+          "5. Clasificación: cada victoria da 3 puntos. Si hay empate a puntos, cuentan los juegos ganados, luego el enfrentamiento directo y luego la diferencia de juegos.",
+          "6. Colores: el primero de cada grupo sube de división y el último baja. Debajo de cada tabla hay una leyenda.",
         ],
       },
       {

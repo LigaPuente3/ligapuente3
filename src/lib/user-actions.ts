@@ -34,7 +34,12 @@ export async function changeUserRole(formData: FormData): Promise<void> {
   if (!check.ok) backToUsers(formData, check.reason);
 
   try {
-    await prisma.user.update({ where: { id: target.id }, data: { role: newRole as "PLAYER" | "MODERATOR" | "ADMIN" } });
+    const role = newRole as "PLAYER" | "MODERATOR" | "ADMIN";
+    // Si deja de ser administrador, pierde también el acceso a la documentación del proyecto.
+    await prisma.user.update({
+      where: { id: target.id },
+      data: { role, ...(role === "ADMIN" ? {} : { projectDocsAccess: false }) },
+    });
   } catch (error) {
     console.error("changeUserRole", error);
     backToUsers(formData, "failed");

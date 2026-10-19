@@ -5,6 +5,8 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { parseAdminIds, roles } from "@/lib/roles";
 import { requirePermission } from "@/lib/session";
+import { getProjectDocsAccess } from "@/lib/project-docs";
+import { setProjectDocsAccess } from "@/lib/project-docs-actions";
 import { changeUserRole } from "@/lib/user-actions";
 import { getDictionary } from "@/i18n/server";
 import { format } from "@/i18n/locale";
@@ -22,6 +24,7 @@ function firstParam(value: string | string[] | undefined): string {
 
 export default async function AdminUsersPage({ searchParams }: PageProps<"/admin/users">) {
   const me = await requirePermission("users.manage", "/admin/users");
+  const docsAccess = await getProjectDocsAccess(me);
   const [{ dict }, params] = await Promise.all([getDictionary(), searchParams]);
   const t = dict.admin.users;
 
@@ -39,7 +42,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
       orderBy: [{ role: "desc" }, { name: "asc" }],
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
-      select: { id: true, name: true, image: true, discordId: true, role: true },
+      select: { id: true, name: true, image: true, discordId: true, role: true, projectDocsAccess: true },
     }),
   ]);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -140,6 +143,26 @@ export default async function AdminUsersPage({ searchParams }: PageProps<"/admin
                     </form>
                   )}
                 </div>
+                {/* Solo en administradores: a moderadores y jugadores no se les puede dar acceso. */}
+                {docsAccess.grant && user.role === "ADMIN" ? (
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-sm">
+                    <span className="text-muted">
+                      {dict.projectDocs.access}:{" "}
+                      {isConfigAdmin ? dict.projectDocs.accessAlways : user.projectDocsAccess ? dict.projectDocs.hasAccess : dict.projectDocs.noAccess}
+                    </span>
+                    {isConfigAdmin ? null : (
+                      <form action={setProjectDocsAccess}>
+                        <input type="hidden" name="userId" value={user.id} />
+                        <input type="hidden" name="q" value={q} />
+                        <input type="hidden" name="page" value={page} />
+                        <input type="hidden" name="access" value={user.projectDocsAccess ? "no" : "yes"} />
+                        <button type="submit" className="min-h-11 rounded-md border border-border px-3 text-sm hover:border-wood">
+                          {user.projectDocsAccess ? dict.projectDocs.revoke : dict.projectDocs.grant}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                ) : null}
               </li>
             );
           })}

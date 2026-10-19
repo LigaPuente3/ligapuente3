@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CollectionTag } from "@/components/collection-tag";
 import { prisma } from "@/lib/db";
 import { formatDay } from "@/lib/format-date";
 import { getDictionary, siteVars } from "@/i18n/server";
@@ -21,6 +22,8 @@ export default async function TournamentsPage() {
       select: {
         slug: true,
         name: true,
+        collectionCode: true,
+        collectionName: true,
         status: true,
         registrationOpen: true, registrationOpensAt: true, registrationClosesAt: true,
         startsOn: true,
@@ -44,7 +47,10 @@ export default async function TournamentsPage() {
                 href={`/tournaments/${tournament.slug}`}
                 className="block rounded-lg border border-border bg-surface p-5 hover:border-wood"
               >
-                <h2 className="text-xl font-semibold text-wood-light">{tournament.name}</h2>
+                <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold text-wood-light">
+                  {tournament.name}
+                  <CollectionTag code={tournament.collectionCode} name={tournament.collectionName} />
+                </h2>
                 <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                   <span>{t.status[tournament.status]}</span>
                   <span className={registrationState(tournament) === "open" ? "text-wood-light" : undefined}>

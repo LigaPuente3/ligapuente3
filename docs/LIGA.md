@@ -5,6 +5,7 @@
 Decisiones de diseño de los torneos (fase 2 en adelante). Es una **versión alfa**: las reglas pueden cambiar en cada edición, así que lo configurable debe poder ajustarse por torneo. Mantener al día en cada PR que toque torneos.
 
 ## Torneo (edición de la liga)
+- Cada torneo puede tener una **colección** como etiqueta de texto (código y nombre, p. ej. «HMW · Homeworlds»). **Sin logos oficiales** de Star Wars: Unlimited ni de sus colecciones.
 - Cada edición es un torneo (p. ej. «VI Liga Puente 3») con fecha de inicio, enlace a sus **bases** y un **plazo** para jugar los partidos de la liguilla.
 - Formato de juego: **Premier**. Partidas **al mejor de 3** (Bo3). Se juega sin límite de tiempo, así que no se esperan empates 1-1.
 - Pueden jugar todos los roles, también los administradores (puede cambiar).
@@ -64,7 +65,7 @@ Doble eliminación en la que los **terceros** entran directamente por el cuadro 
 - **Liga Puente 3** (🏆, con número de veces): **no la marca el jugador**. Se sumará sola al campeón de cada edición jugada en esta web; las ediciones anteriores las asignan **moderadores o administradores** (Administración → Asignar «Liga Puente 3»).
 - Se muestran como iconos en su perfil y en las clasificaciones.
 
-## Ayuda y documentación (pendiente, siguiente PR)
+## Ayuda y documentación (implementado en 0.7.0-alpha)
 - **Ayuda para jugadores** (`/help`) y **ayuda para administradores y moderadores**, separadas y explicadas de forma **muy sencilla**.
 - **Documentación del proyecto** (servicios, variables, claves a rotar, migraciones, traspaso): **dentro de la web**, en una página que solo ven los administradores por configuración (`ADMIN_DISCORD_IDS`) y las personas a las que ellos se lo activen. Se retira del repositorio público (que se queda solo con lo necesario para desarrollar, sin datos sensibles).
 

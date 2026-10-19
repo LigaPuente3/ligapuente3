@@ -6,9 +6,12 @@ import {
   discordIdFromPlaceholder,
   effectiveRole,
   hasRole,
+  canReceiveProjectDocsAccess,
+  isConfigAdmin,
   parseAdminIds,
   permissions,
   placeholderEmail,
+  projectDocsAccess,
   roles,
 } from "./roles";
 
@@ -142,5 +145,43 @@ describe("placeholderEmail / discordIdFromPlaceholder", () => {
     expect(discordIdFromPlaceholder("alguien@example.com")).toBeNull();
     expect(discordIdFromPlaceholder("abc@discord.invalid")).toBeNull();
     expect(discordIdFromPlaceholder(undefined)).toBeNull();
+  });
+});
+
+describe("documentación del proyecto", () => {
+  const admins = parseAdminIds("111111111111111111");
+
+  it("los administradores por configuración la ven, la editan y dan acceso", () => {
+    expect(projectDocsAccess({ discordId: "111111111111111111", role: "ADMIN", projectDocsAccess: false }, admins)).toEqual({
+      view: true,
+      edit: true,
+      grant: true,
+    });
+  });
+
+  it("un administrador con el acceso activado solo la ve", () => {
+    expect(projectDocsAccess({ discordId: "222222222222222222", role: "ADMIN", projectDocsAccess: true }, admins)).toEqual({
+      view: true,
+      edit: false,
+      grant: false,
+    });
+  });
+
+  it("el resto no la ve, aunque sea administrador por la base de datos", () => {
+    expect(projectDocsAccess({ discordId: "333333333333333333", role: "ADMIN", projectDocsAccess: false }, admins).view).toBe(false);
+    expect(isConfigAdmin("333333333333333333", admins)).toBe(false);
+    expect(isConfigAdmin(null, admins)).toBe(false);
+  });
+
+  it("moderadores y jugadores no la ven aunque tengan la casilla activada", () => {
+    expect(projectDocsAccess({ discordId: "444444444444444444", role: "MODERATOR", projectDocsAccess: true }, admins).view).toBe(false);
+    expect(projectDocsAccess({ discordId: "555555555555555555", role: "PLAYER", projectDocsAccess: true }, admins).view).toBe(false);
+  });
+
+  it("solo se puede dar acceso a administradores (no por configuración)", () => {
+    expect(canReceiveProjectDocsAccess({ discordId: "222222222222222222", role: "ADMIN" }, admins)).toBe(true);
+    expect(canReceiveProjectDocsAccess({ discordId: "222222222222222222", role: "MODERATOR" }, admins)).toBe(false);
+    expect(canReceiveProjectDocsAccess({ discordId: "222222222222222222", role: "PLAYER" }, admins)).toBe(false);
+    expect(canReceiveProjectDocsAccess({ discordId: "111111111111111111", role: "ADMIN" }, admins)).toBe(false);
   });
 });

@@ -102,3 +102,29 @@ export function discordIdFromPlaceholder(email: unknown): string | null {
   const match = /^(\d{5,25})@discord\.invalid$/.exec(email);
   return match?.[1] ?? null;
 }
+
+// --- Documentación privada del proyecto ---------------------------------------------
+
+/** Administrador por configuración (su ID de Discord está en ADMIN_DISCORD_IDS). */
+export function isConfigAdmin(discordId: string | null | undefined, adminIds: Set<string>): boolean {
+  return Boolean(discordId && adminIds.has(discordId));
+}
+
+/**
+ * La documentación del proyecto la ven los administradores por configuración y
+ * los administradores a los que ellos activen el acceso. Solo los primeros la
+ * editan y dan acceso. Moderadores y jugadores nunca la ven, aunque tengan la
+ * casilla activada (p. ej. si se les bajó el rol).
+ */
+export function projectDocsAccess(
+  user: { discordId: string | null; role: Role; projectDocsAccess: boolean },
+  adminIds: Set<string>,
+): { view: boolean; edit: boolean; grant: boolean } {
+  const owner = isConfigAdmin(user.discordId, adminIds);
+  return { view: owner || (user.role === "ADMIN" && user.projectDocsAccess), edit: owner, grant: owner };
+}
+
+/** Solo se puede dar acceso a administradores que no lo sean por configuración (esos ya lo tienen). */
+export function canReceiveProjectDocsAccess(target: { discordId: string | null; role: Role }, adminIds: Set<string>): boolean {
+  return target.role === "ADMIN" && !isConfigAdmin(target.discordId, adminIds);
+}

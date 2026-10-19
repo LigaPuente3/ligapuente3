@@ -86,7 +86,7 @@ export const en: Dictionary = {
     statsError: "The data could not be loaded. Please try again later.",
     comingSoonTitle: "Coming soon",
     comingSoonBody: "Tournaments, registrations, divisions, group stage and knockout rounds.",
-    docsLink: "Admin documentation",
+    docsLink: "Admin guide",
     usersLink: "Manage users and roles",
     tournamentsLink: "Manage tournaments and registrations",
     achievementsLink: "Assign \"Liga Puente 3\" to players",
@@ -124,8 +124,8 @@ export const en: Dictionary = {
       },
     },
     docs: {
-      title: "Admin documentation",
-      intro: "How {site} is managed. Alpha version: roles and their permissions may change.",
+      title: "Admin guide",
+      intro: "How {site} is managed, step by step, for admins and moderators. Alpha version: it may change.",
       sections: [
         {
           title: "Roles",
@@ -159,6 +159,14 @@ export const en: Dictionary = {
           ],
         },
         {
+          title: "\"Liga Puente 3\" achievement (moderators and admins)",
+          paragraphs: [
+            "1. Admin → \"Assign \"Liga Puente 3\" to players\".",
+            "2. Search for the player by name or Discord ID, enter how many editions they have won and press \"Save\". 0 removes it.",
+            "Players cannot set this achievement themselves.",
+          ],
+        },
+        {
           title: "How to change someone's role",
           paragraphs: [
             "The person must have signed in with Discord at least once. Then, in Admin → Manage users and roles, find them, choose the role and press Save. The change can take up to 5 minutes to apply.",
@@ -171,27 +179,10 @@ export const en: Dictionary = {
           ],
         },
         {
-          title: "Service status",
-          paragraphs: [
-            "The /api/health address shows the region the site runs in (it must be fra1, Frankfurt), the time, the last applied migration and the database response time (it should be a few milliseconds).",
-            "A daily Vercel cron queries the database so Supabase does not pause the project for inactivity.",
-          ],
-        },
-        {
-          title: "Database and migrations",
-          paragraphs: [
-            "Database structure changes are applied by hand in the Supabase SQL Editor, first in development and then in production, following docs/MIGRACIONES.md in the repository.",
-          ],
-        },
-        {
           title: "Personal data and account deletion",
           paragraphs: [
             "Everyone can delete their account from their profile. If someone asks another way, delete their row in the users table in the SQL Editor (their sessions and linked Discord account are deleted automatically): DELETE FROM users WHERE discord_id = '…';",
           ],
-        },
-        {
-          title: "Handover",
-          paragraphs: ["Services, environment variables and keys to rotate are listed in docs/TRANSFERENCIA.md in the repository."],
         },
       ],
     },
@@ -267,6 +258,8 @@ export const en: Dictionary = {
     name: "Name",
     description: "Description (optional)",
     rulesUrl: "Link to the rules (https://…, optional)",
+    collectionCode: "Set (code)",
+    collectionName: "Set (name)",
     startsOn: "Start date (optional)",
     matchDeadlineOn: "Deadline to play the group stage (optional)",
     status: "Status",
@@ -428,6 +421,34 @@ export const en: Dictionary = {
       none_selected: "Tick at least one player and choose the division.",
     },
   },
+  projectDocs: {
+    title: "Project documentation",
+    intro:
+      "Only admins by configuration and the admins they grant access can see it (it cannot be given to moderators or players). It is stored in the database, not in the public repository.",
+    link: "Project documentation",
+    documents: "Documents",
+    empty: "There are no documents yet.",
+    newDoc: "New document",
+    edit: "Edit",
+    slug: "Identifier (lowercase letters, numbers and hyphens)",
+    docTitle: "Title",
+    body: "Content",
+    bodyHelp: "You can use Markdown: # headings, - lists, **bold**, tables with |, links [text](https://…).",
+    save: "Save",
+    cancel: "Cancel",
+    delete: "Delete document",
+    deleteConfirm: "I confirm I want to delete this document",
+    updated: "Updated on {date}",
+    saved: "Document saved.",
+    deleted: "Document deleted.",
+    invalid: "Check the identifier, the title and the content.",
+    access: "Project documentation",
+    accessAlways: "Always (admin by configuration)",
+    grant: "Grant access",
+    revoke: "Remove access",
+    hasAccess: "Has access",
+    noAccess: "No access",
+  },
   footer: {
     unofficial:
       "Community project, unofficial: not affiliated with or endorsed by the owners of the game.",
@@ -573,9 +594,12 @@ export const en: Dictionary = {
       {
         title: "Group stage and results",
         paragraphs: [
-          "Admins assign you a division (Legendary, Rare, Uncommon or Common) and the groups are drawn. In each group you play everyone, best of 3, within the tournament deadline.",
-          "When you finish a match, go to the tournament page and, under \"Your pending matches\", choose your games and your rival's (0, 1 or 2) and press \"Save result\". Either player can enter it. You are asked to confirm before saving: afterwards only a moderator or an admin can change it, so if something is wrong, tell them.",
-          "Standings: win 3 points, loss 0. Tiebreakers: games won, head-to-head and game difference.",
+          "1. When the tournament starts, go to its page: under \"Group stage\" you will see your division, your group and your opponents.",
+          "2. Arrange a match with each opponent in your group (on Discord) and play best of 3 before the tournament deadline.",
+          "3. When you finish, under \"Your matches\", choose your games and your opponent's (0, 1 or 2), press \"Save result\" and confirm with \"Yes, save\". Either player can enter it.",
+          "4. If you make a mistake, tell a moderator: once saved, only they can change it.",
+          "5. Standings: each win gives 3 points. If players are tied on points, games won count first, then head-to-head, then game difference.",
+          "6. Colours: the top player of each group is promoted and the bottom one is relegated. There is a legend under each table.",
         ],
       },
       {

@@ -13,6 +13,24 @@ export type ChangelogEntry = {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "0.7.0-alpha",
+    date: "2026-10-19",
+    changes: {
+      es: [
+        "Cada torneo puede mostrar su colección como etiqueta (por ejemplo, «HMW · Homeworlds»).",
+        "Ayuda para jugadores más sencilla, paso a paso.",
+        "Guía de administración separada, sencilla y paso a paso, para administradores y moderadores.",
+        "Documentación privada del proyecto dentro de la web, solo para sus responsables.",
+      ],
+      en: [
+        "Each tournament can show its set as a tag (for example, \"HMW · Homeworlds\").",
+        "Simpler, step-by-step help for players.",
+        "Separate, simple, step-by-step admin guide for admins and moderators.",
+        "Private project documentation inside the site, only for those in charge.",
+      ],
+    },
+  },
+  {
     version: "0.6.0-alpha",
     date: "2026-10-19",
     changes: {
